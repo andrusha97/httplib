@@ -64,6 +64,12 @@ typedef unsigned __int64 uint64_t;
 # define HTTP_MAX_HEADER_SIZE (80*1024)
 #endif
 
+#ifndef HTTP_MAX_METHOD_SIZE
+// The parser assumes that method length fits in 8 bits.
+// If you grow this limit, fix the corresponding code.
+# define HTTP_MAX_METHOD_SIZE 200
+#endif
+
 typedef struct http_parser http_parser;
 typedef struct http_parser_settings http_parser_settings;
 
@@ -132,6 +138,8 @@ typedef int (*http_cb) (http_parser*);
   /* RFC-2068, section 19.6.1.2 */  \
   XX(31, LINK,        LINK)         \
   XX(32, UNLINK,      UNLINK)       \
+  /* any other method */            \
+  XX(33, OTHER,       OTHER)        \
 
 enum http_method
   {
@@ -141,7 +149,7 @@ enum http_method
   };
 
 
-enum http_parser_type { HTTP_REQUEST, HTTP_RESPONSE, HTTP_BOTH };
+enum http_parser_type { HTTP_REQUEST, HTTP_RESPONSE, HTTP_CHUNKED_BODY };
 
 
 /* Flag values for http_parser.flags field */
@@ -167,6 +175,7 @@ enum flags
                                                                      \
   /* Callback-related errors */                                      \
   XX(CB_message_begin, "the on_message_begin callback failed")       \
+  XX(CB_method, "the on_method callback failed")                     \
   XX(CB_url, "the on_url callback failed")                           \
   XX(CB_header_field, "the on_header_field callback failed")         \
   XX(CB_header_value, "the on_header_value callback failed")         \
@@ -252,6 +261,7 @@ struct http_parser {
 
 struct http_parser_settings {
   http_cb      on_message_begin;
+  http_data_cb on_method;
   http_data_cb on_url;
   http_data_cb on_status;
   http_data_cb on_header_field;

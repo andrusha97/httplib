@@ -279,8 +279,6 @@ static const uint8_t normal_url_char[32] = {
 enum state
   { s_dead = 1 /* important that this is > 0 */
 
-  , s_start_req_or_res
-  , s_res_or_resp_H
   , s_start_res
   , s_res_H
   , s_res_HT
@@ -641,6 +639,7 @@ size_t http_parser_execute (http_parser *parser,
   const char *p = data;
   const char *header_field_mark = 0;
   const char *header_value_mark = 0;
+  const char *method_mark = 0;
   const char *url_mark = 0;
   const char *body_mark = 0;
   const char *status_mark = 0;
@@ -662,7 +661,6 @@ size_t http_parser_execute (http_parser *parser,
         return 0;
 
       case s_dead:
-      case s_start_req_or_res:
       case s_start_res:
       case s_start_req:
         return 0;
@@ -679,6 +677,10 @@ size_t http_parser_execute (http_parser *parser,
   if (CURRENT_STATE() == s_header_value)
     header_value_mark = data;
   switch (CURRENT_STATE()) {
+  case s_start_req:
+  case s_req_method:
+    method_mark = data;
+    break;
   case s_req_path:
   case s_req_schema:
   case s_req_schema_slash:
@@ -717,43 +719,6 @@ reexecute:
 
         SET_ERRNO(HPE_CLOSED_CONNECTION);
         goto error;
-
-      case s_start_req_or_res:
-      {
-        if (ch == CR || ch == LF)
-          break;
-        parser->flags = 0;
-        parser->content_length = ULLONG_MAX;
-
-        if (ch == 'H') {
-          UPDATE_STATE(s_res_or_resp_H);
-
-          CALLBACK_NOTIFY(message_begin);
-        } else {
-          parser->type = HTTP_REQUEST;
-          UPDATE_STATE(s_start_req);
-          REEXECUTE();
-        }
-
-        break;
-      }
-
-      case s_res_or_resp_H:
-        if (ch == 'T') {
-          parser->type = HTTP_RESPONSE;
-          UPDATE_STATE(s_res_HT);
-        } else {
-          if (UNLIKELY(ch != 'E')) {
-            SET_ERRNO(HPE_INVALID_CONSTANT);
-            goto error;
-          }
-
-          parser->type = HTTP_REQUEST;
-          parser->method = HTTP_HEAD;
-          parser->index = 2;
-          UPDATE_STATE(s_req_method);
-        }
-        break;
 
       case s_start_res:
       {
@@ -983,9 +948,7 @@ reexecute:
           case 'S': parser->method = HTTP_SUBSCRIBE; /* or SEARCH */ break;
           case 'T': parser->method = HTTP_TRACE; break;
           case 'U': parser->method = HTTP_UNLOCK; /* or UNSUBSCRIBE, UNBIND, UNLINK */ break;
-          default:
-            SET_ERRNO(HPE_INVALID_METHOD);
-            goto error;
+          default:  parser->method = HTTP_OTHER; break;
         }
         UPDATE_STATE(s_req_method);
 
@@ -997,17 +960,22 @@ reexecute:
       case s_req_method:
       {
         const char *matcher;
-        if (UNLIKELY(ch == '\0')) {
+        if (UNLIKELY(ch == '\0' || parser->index > HTTP_MAX_METHOD_SIZE)) {
           SET_ERRNO(HPE_INVALID_METHOD);
           goto error;
         }
 
         matcher = method_strings[parser->method];
-        if (ch == ' ' && matcher[parser->index] == '\0') {
+        if (ch == ' ') {
+          if (parser->method != HTTP_OTHER && matcher[parser->index] != '\0') {
+            parser->method = HTTP_OTHER;
+          }
+
           UPDATE_STATE(s_req_spaces_before_url);
-        } else if (ch == matcher[parser->index]) {
+          CALLBACK_DATA(method);
+        } else if (parser->method != HTTP_OTHER && ch == matcher[parser->index]) {
           ; /* nada */
-        } else if (IS_ALPHA(ch)) {
+        } else if (parser->method != HTTP_OTHER && IS_ALPHA(ch)) {
 
           switch (parser->method << 16 | parser->index << 8 | ch) {
 #define XX(meth, pos, ch, new_meth) \
@@ -1033,14 +1001,14 @@ reexecute:
             XX(UNLOCK,    3, 'I', UNLINK)
 #undef XX
 
-            default:
-              SET_ERRNO(HPE_INVALID_METHOD);
-              goto error;
+            default: parser->method = HTTP_OTHER; break;
           }
         } else if (ch == '-' &&
                    parser->index == 1 &&
                    parser->method == HTTP_MKCOL) {
           parser->method = HTTP_MSEARCH;
+        } else if (STRICT_TOKEN(ch)) {
+          parser->method = HTTP_OTHER;
         } else {
           SET_ERRNO(HPE_INVALID_METHOD);
           goto error;
@@ -2070,12 +2038,14 @@ reexecute:
 
   assert(((header_field_mark ? 1 : 0) +
           (header_value_mark ? 1 : 0) +
+          (method_mark ? 1 : 0)  +
           (url_mark ? 1 : 0)  +
           (body_mark ? 1 : 0) +
           (status_mark ? 1 : 0)) <= 1);
 
   CALLBACK_DATA_NOADVANCE(header_field);
   CALLBACK_DATA_NOADVANCE(header_value);
+  CALLBACK_DATA_NOADVANCE(method);
   CALLBACK_DATA_NOADVANCE(url);
   CALLBACK_DATA_NOADVANCE(body);
   CALLBACK_DATA_NOADVANCE(status);
@@ -2148,7 +2118,16 @@ http_parser_init (http_parser *parser, enum http_parser_type t)
   memset(parser, 0, sizeof(*parser));
   parser->data = data;
   parser->type = t;
-  parser->state = (t == HTTP_REQUEST ? s_start_req : (t == HTTP_RESPONSE ? s_start_res : s_start_req_or_res));
+
+  if (t == HTTP_CHUNKED_BODY) {
+    parser->state = s_chunk_size_start;
+    parser->flags |= F_CHUNKED;
+  } else if (t == HTTP_REQUEST) {
+    parser->state = s_start_req;
+  } else {
+    parser->state = s_start_res;
+  }
+
   parser->http_errno = HPE_OK;
 }
 

@@ -26,6 +26,8 @@
 #define HTTP_PARSER_VERSION_MINOR 7
 #define HTTP_PARSER_VERSION_PATCH 1
 
+#include <httplib/detail/common.hpp>
+
 #include <sys/types.h>
 #if defined(_WIN32) && !defined(__MINGW32__) && \
   (!defined(_MSC_VER) || _MSC_VER<1600) && !defined(__WINE__)
@@ -43,7 +45,8 @@ typedef unsigned __int64 uint64_t;
 #include <stdint.h>
 #endif
 
-namespace libhttp { namespace joyent {
+HTTPLIB_OPEN_NAMESPACE
+namespace joyent {
 
 /* Compile with -DHTTP_PARSER_STRICT=0 to make less checks, but run
  * faster
@@ -224,7 +227,7 @@ enum http_errno {
 
 
 /* Get an http_errno value from an http_parser */
-#define HTTP_PARSER_ERRNO(p)            ((enum libhttp::joyent::http_errno) (p)->http_errno)
+#define HTTP_PARSER_ERRNO(p)            ((enum httplib::joyent::http_errno) (p)->http_errno)
 
 
 struct http_parser {
@@ -365,6 +368,7 @@ void http_parser_pause(http_parser *parser, int paused);
 /* Checks if this is the final chunk of the body. */
 int http_body_is_final(const http_parser *parser);
 
-}} // namespace libhttp::joyent
+} // namespace joyent
+HTTPLIB_CLOSE_NAMESPACE
 
 #endif

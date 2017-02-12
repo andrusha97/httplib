@@ -1,0 +1,73 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+PROJECT(HTTPLIB)
+
+
+SET(REQUIRED_BOOST_VERSION 1.61.0)
+SET(REQUIRED_BOOST_COMPONENTS system log log_setup thread program_options filesystem regex)
+
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+SET(Boost_USE_MULTITHREADED ON)
+
+FIND_PACKAGE(Threads REQUIRED)
+FIND_PACKAGE(Boost ${REQUIRED_BOOST_VERSION} REQUIRED COMPONENTS ${REQUIRED_BOOST_COMPONENTS})
+FIND_PACKAGE(OpenSSL REQUIRED)
+
+
+SET(HTTPLIB_CXX_OPTIONS -std=c++14 -pedantic -pedantic-errors -Wall -Wextra -Werror)
+
+SET(HTTPLIB_DEFINITIONS BOOST_LOG_DYN_LINK BOOST_LOG_USE_NATIVE_SYSLOG)
+
+SET(HTTPLIB_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include)
+
+SET(HTTPLIB_SYSTEM_INCLUDE_DIRECTORIES
+    ${PROJECT_SOURCE_DIR}/contrib/http-parser-2.7.1/include
+    ${Boost_INCLUDE_DIRS}
+    ${OpenSSL_INCLUDE_DIR}
+)
+
+SET(HTTPLIB_LINK_LIBRARIES
+    ${OPENSSL_LIBRARIES}
+    ${Boost_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
+
+
+ADD_LIBRARY(httplib
+    ${PROJECT_SOURCE_DIR}/contrib/http-parser-2.7.1/http_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/error.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/headers.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/message_properties.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/request.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/response.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/status_code.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/chunked_body_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/detail/utility.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/extension_list_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/request_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/response_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/token_list_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/parser/url_parser.cpp
+    ${PROJECT_SOURCE_DIR}/src/response_builder.cpp
+)
+
+TARGET_INCLUDE_DIRECTORIES(httplib BEFORE PRIVATE ${HTTPLIB_INCLUDE_DIRECTORIES})
+TARGET_INCLUDE_DIRECTORIES(httplib SYSTEM PRIVATE ${HTTPLIB_SYSTEM_INCLUDE_DIRECTORIES})
+TARGET_LINK_LIBRARIES(httplib ${HTTPLIB_LINK_LIBRARIES})
+TARGET_COMPILE_OPTIONS(httplib PRIVATE ${HTTPLIB_CXX_OPTIONS})
+TARGET_COMPILE_DEFINITIONS(httplib PRIVATE ${HTTPLIB_DEFINITIONS})
+
+
+ADD_EXECUTABLE(http-parser-test
+    ${PROJECT_SOURCE_DIR}/contrib/http-parser-2.7.1/http_parser.cpp
+    ${PROJECT_SOURCE_DIR}/contrib/http-parser-2.7.1/test.cpp
+)
+
+TARGET_INCLUDE_DIRECTORIES(http-parser-test BEFORE PRIVATE ${HTTPLIB_INCLUDE_DIRECTORIES})
+TARGET_INCLUDE_DIRECTORIES(http-parser-test SYSTEM PRIVATE ${HTTPLIB_SYSTEM_INCLUDE_DIRECTORIES})
+TARGET_LINK_LIBRARIES(http-parser-test ${HTTPLIB_LINK_LIBRARIES})
+TARGET_COMPILE_OPTIONS(http-parser-test PRIVATE -std=c++14 -Wall -Wextra -Werror)
+TARGET_COMPILE_DEFINITIONS(http-parser-test PRIVATE ${HTTPLIB_DEFINITIONS})
+
+
+ADD_SUBDIRECTORY(examples)

@@ -29,7 +29,8 @@
 #include <string.h>
 #include <limits.h>
 
-namespace libhttp { namespace joyent {
+HTTPLIB_OPEN_NAMESPACE
+namespace joyent {
 
 #ifndef ULLONG_MAX
 # define ULLONG_MAX ((uint64_t) -1) /* 2^64-1 */
@@ -2450,4 +2451,5 @@ http_parser_version(void) {
          HTTP_PARSER_VERSION_PATCH * 0x00001;
 }
 
-}} // namespace libhttp::joyent
+} // namespace joyent
+HTTPLIB_CLOSE_NAMESPACE

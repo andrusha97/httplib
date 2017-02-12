@@ -26,7 +26,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-namespace libhttp { namespace joyent {
+HTTPLIB_OPEN_NAMESPACE
+namespace joyent {
 
 #if defined(__APPLE__)
 # undef strlcat
@@ -4216,11 +4217,12 @@ main (void)
   return 0;
 }
 
-}} // namespace libhttp::joyent
+} // namespace joyent
+HTTPLIB_CLOSE_NAMESPACE
 
 
 int
 main (void)
 {
-    return libhttp::joyent::main();
+    return httplib::joyent::main();
 }

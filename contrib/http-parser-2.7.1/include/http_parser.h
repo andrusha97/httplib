@@ -224,7 +224,7 @@ enum http_errno {
 
 
 /* Get an http_errno value from an http_parser */
-#define HTTP_PARSER_ERRNO(p)            ((enum http_errno) (p)->http_errno)
+#define HTTP_PARSER_ERRNO(p)            ((enum libhttp::joyent::http_errno) (p)->http_errno)
 
 
 struct http_parser {

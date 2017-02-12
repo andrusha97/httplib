@@ -26,6 +26,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+namespace libhttp { namespace joyent {
+
 #if defined(__APPLE__)
 # undef strlcat
 # undef strlncpy
@@ -1782,7 +1784,7 @@ strnlen(const char *s, size_t maxlen)
 {
   const char *p;
 
-  p = memchr(s, '\0', maxlen);
+  p = (const char *)memchr(s, '\0', maxlen);
   if (p == NULL)
     return maxlen;
 
@@ -1858,7 +1860,7 @@ header_field_cb (http_parser *p, const char *buf, size_t len)
   assert(p == parser);
   struct message *m = &messages[num_messages];
 
-  if (m->last_header_element != FIELD)
+  if (m->last_header_element != message::FIELD)
     m->num_headers++;
 
   strlncat(m->headers[m->num_headers-1][0],
@@ -1866,7 +1868,7 @@ header_field_cb (http_parser *p, const char *buf, size_t len)
            buf,
            len);
 
-  m->last_header_element = FIELD;
+  m->last_header_element = message::FIELD;
 
   return 0;
 }
@@ -1882,7 +1884,7 @@ header_value_cb (http_parser *p, const char *buf, size_t len)
            buf,
            len);
 
-  m->last_header_element = VALUE;
+  m->last_header_element = message::VALUE;
 
   return 0;
 }
@@ -1936,7 +1938,7 @@ int
 headers_complete_cb (http_parser *p)
 {
   assert(p == parser);
-  messages[num_messages].method = parser->method;
+  messages[num_messages].method = (http_method)parser->method;
   messages[num_messages].status_code = parser->status_code;
   messages[num_messages].http_major = parser->http_major;
   messages[num_messages].http_minor = parser->http_minor;
@@ -2285,7 +2287,7 @@ parser_init (enum http_parser_type type)
 
   assert(parser == NULL);
 
-  parser = malloc(sizeof(http_parser));
+  parser = (http_parser *)malloc(sizeof(http_parser));
 
   http_parser_init(parser, type);
 
@@ -3213,7 +3215,7 @@ void
 test_method_str (void)
 {
   assert(0 == strcmp("GET", http_method_str(HTTP_GET)));
-  assert(0 == strcmp("<unknown>", http_method_str(1337)));
+  assert(0 == strcmp("<unknown>", http_method_str((http_method)1337)));
 }
 
 void
@@ -3793,7 +3795,7 @@ create_large_chunked_message (int body_size_in_kb, const char* headers)
   size_t wrote = 0;
   size_t headers_len = strlen(headers);
   size_t bufsize = headers_len + (5+1024+2)*body_size_in_kb + 6;
-  char * buf = malloc(bufsize);
+  char * buf = (char *)malloc(bufsize);
 
   memcpy(buf, headers, headers_len);
   wrote += headers_len;
@@ -4212,4 +4214,13 @@ main (void)
   puts("requests okay");
 
   return 0;
+}
+
+}} // namespace libhttp::joyent
+
+
+int
+main (void)
+{
+    return libhttp::joyent::main();
 }

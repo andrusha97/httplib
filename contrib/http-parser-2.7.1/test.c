@@ -3691,8 +3691,7 @@ test_scan (const struct message *r1, const struct message *r2, const struct mess
   size_t buf1_len, buf2_len, buf3_len;
   int message_count = count_parsed_messages(3, r1, r2, r3);
 
-  int i,j,type_both;
-  for (type_both = 0; type_both < 2; type_both ++ ) {
+  int i,j;
     for (j = 2; j < total_len; j ++ ) {
       for (i = 1; i < j; i ++ ) {
 
@@ -3702,7 +3701,7 @@ test_scan (const struct message *r1, const struct message *r2, const struct mess
         }
         ops += 1;
 
-        parser_init(type_both ? HTTP_BOTH : r1->type);
+        parser_init(r1->type);
 
         buf1_len = i;
         strlncpy(buf1, sizeof(buf1), total, buf1_len);
@@ -3774,7 +3773,6 @@ test:
         parser_free();
       }
     }
-  }
   puts("\b\b\b\b100%");
   return;
 
@@ -4083,18 +4081,9 @@ main (void)
   }
 
   static const char *bad_methods[] = {
-      "ASDF",
-      "C******",
-      "COLA",
-      "GEM",
-      "GETA",
-      "M****",
-      "MKCOLA",
-      "PROPPATCHA",
-      "PUN",
-      "PX",
-      "SA",
-      "hello world",
+      "ABC\n",
+      "ABC\r",
+      "",
       0 };
   for (this_method = bad_methods; *this_method; this_method++) {
     char buf[200];

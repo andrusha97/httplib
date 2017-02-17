@@ -98,7 +98,7 @@ struct body_reader<BufferedReadStream>::read_throw_visitor {
 
 template<class BufferedReadStream>
 result<body_reader<BufferedReadStream>, make_body_reader_error_t>
-make_body_reader(http_request_t &request, BufferedReadStream &stream, read_options_t options) {
+make_body_reader(const http_request_t &request, BufferedReadStream &stream, read_options_t options) {
     using result_t = result<body_reader<BufferedReadStream>, make_body_reader_error_t>;
 
     auto size = body_size(request);

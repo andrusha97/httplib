@@ -91,10 +91,10 @@ enum class make_body_reader_error_t {
 
 template<class BufferedReadStream>
 result<body_reader<BufferedReadStream>, make_body_reader_error_t>
-make_body_reader(http_request_t &request, BufferedReadStream &stream, read_options_t options = {});
+make_body_reader(const http_request_t &request, BufferedReadStream &stream, read_options_t options = {});
 
 
-status_code_t response_status_from_error(make_body_reader_error_t error) {
+inline status_code_t response_status_from_error(make_body_reader_error_t error) {
     switch (error) {
         case make_body_reader_error_t::bad_message:
             return STATUS_400_BAD_REQUEST;

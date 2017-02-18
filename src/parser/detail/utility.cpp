@@ -788,7 +788,18 @@ bool HTTPLIB_NAMESPACE::detail::is_quoted_pair_char(char ch) {
 }
 
 bool HTTPLIB_NAMESPACE::detail::is_whitespace(char ch) {
-    return ch == ' ' || ch == '\t';
+    unsigned char uch = ch;
+    return uch == 0x20 || uch == 0x09;
+}
+
+bool HTTPLIB_NAMESPACE::detail::is_alpha(char ch) {
+    unsigned char uch = ch;
+    return (uch >= 0x41 && uch <= 0x5a) || (uch >= 0x61 && uch <= 0x7a);
+}
+
+bool HTTPLIB_NAMESPACE::detail::is_digit(char ch) {
+    unsigned char uch = ch;
+    return uch >= 0x30 && uch <= 0x39;
 }
 
 boost::optional<std::string> HTTPLIB_NAMESPACE::detail::parse_token(boost::string_view &data) {

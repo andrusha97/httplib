@@ -1,10 +1,14 @@
 #include <httplib/parser/url_parser.hpp>
+#include <httplib/parser/detail/utility.hpp>
 
 #include <http_parser.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/lexical_cast.hpp>
+
+#include <cstring>
+#include <vector>
 
 
 boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view data) {
@@ -24,8 +28,9 @@ boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view 
 
     if (parser.field_set & (1 << joyent::UF_USERINFO)) {
         // RFC 7230 forbids user info in http and https url's.
-        if (boost::algorithm::iequals(result.schema, "http") ||
-            boost::algorithm::iequals(result.schema, "https"))
+        if (result.schema &&
+            (boost::algorithm::iequals(*result.schema, "http") ||
+             boost::algorithm::iequals(*result.schema, "https")))
         {
             return boost::none;
         }
@@ -76,6 +81,50 @@ boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view 
 }
 
 
+std::string HTTPLIB_NAMESPACE::build_url(const url_t &url) {
+    // https://tools.ietf.org/html/rfc3986#section-5.3
+
+    std::string result;
+
+    if (url.schema) {
+        result += *url.schema;
+        result += ":";
+    }
+
+    if (url.user_info || url.host || url.port) {
+        result += "//";
+
+        if (url.user_info) {
+            result += *url.user_info;
+            result += "@";
+        }
+
+        if (url.host) {
+            result += *url.host;
+        }
+
+        if (url.port) {
+            result += ":";
+            result += std::to_string(*url.port);
+        }
+    }
+
+    result += url.path;
+
+    if (url.query) {
+        result += "?";
+        result += *url.query;
+    }
+
+    if (url.fragment) {
+        result += "#";
+        result += *url.fragment;
+    }
+
+    return result;
+}
+
+
 boost::string_view HTTPLIB_NAMESPACE::query_parameter_t::name() const {
     return m_name;
 }
@@ -119,25 +168,27 @@ boost::optional<const HTTPLIB_NAMESPACE::query_parameter_t &> HTTPLIB_NAMESPACE:
 
 namespace {
 
-bool hex_digit_to_number(char digit, int &result) {
-    if (digit >= '0' && digit <= '9') {
-        result = digit - '0';
+
+bool hex_digit_to_number(unsigned char digit, unsigned int &result) {
+    if (digit >= static_cast<unsigned char>('0') && digit <= static_cast<unsigned char>('9')) {
+        result = digit - static_cast<unsigned char>('0');
         return true;
-    } else if (digit >= 'a' && digit <= 'f') {
-        result = digit - 'a' + 10;
+    } else if (digit >= static_cast<unsigned char>('a') && digit <= static_cast<unsigned char>('f')) {
+        result = digit - static_cast<unsigned char>('a') + 10;
         return true;
-    } else if (digit >= 'A' && digit <= 'F') {
-        result = digit - 'A' + 10;
+    } else if (digit >= static_cast<unsigned char>('A') && digit <= static_cast<unsigned char>('F')) {
+        result = digit - static_cast<unsigned char>('A') + 10;
         return true;
     } else {
         return false;
     }
 }
 
+
 } // namespace
 
 
-boost::optional<std::string> HTTPLIB_NAMESPACE::unescape_plus(boost::string_view data) {
+boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data) {
     std::string result;
 
     for (auto it = data.begin(); it < data.end(); ++it) {
@@ -150,7 +201,7 @@ boost::optional<std::string> HTTPLIB_NAMESPACE::unescape_plus(boost::string_view
                 return boost::none;
             }
 
-            int high_digit = 0;
+            unsigned int high_digit = 0;
 
             if (!hex_digit_to_number(*it, high_digit)) {
                 return boost::none;
@@ -162,13 +213,13 @@ boost::optional<std::string> HTTPLIB_NAMESPACE::unescape_plus(boost::string_view
                 return boost::none;
             }
 
-            int low_digit = 0;
+            unsigned int low_digit = 0;
 
             if (!hex_digit_to_number(*it, low_digit)) {
                 return boost::none;
             }
 
-            result.push_back(high_digit * 16 + low_digit);
+            result.push_back(static_cast<unsigned char>(high_digit * 16 + low_digit));
         } else {
             result.push_back(*it);
         }
@@ -178,43 +229,223 @@ boost::optional<std::string> HTTPLIB_NAMESPACE::unescape_plus(boost::string_view
 }
 
 
-boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost::string_view data) {
+boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost::string_view query) {
     query_t result;
 
-    size_t parameter_begin = 0;
+    while (!query.empty()) {
+        // W3C recommends supporting both semicolon and ampersand as delimiters.
+        // https://www.w3.org/TR/html401/appendix/notes.html#ampersands-in-uris
+        auto parameter_string = query.substr(0, query.find_first_of("&;"));
+        query.remove_prefix(parameter_string.size() + 1);
 
-    while (parameter_begin < data.size()) {
-        size_t parameter_end = parameter_begin;
-
-        while (parameter_end < data.size() && data[parameter_end] != '&') {
-            ++parameter_end;
-        }
-
-        size_t delimiter = parameter_begin;
-
-        while (delimiter < parameter_end && data[delimiter] != '=') {
-            ++delimiter;
-        }
+        auto name_string = parameter_string.substr(0, parameter_string.find('='));
 
         query_parameter_t parameter;
 
-        if (auto name = unescape_plus(data.substr(parameter_begin, delimiter - parameter_begin))) {
+        if (auto name = unescape(name_string)) {
             parameter.m_name = std::move(*name);
         } else {
             return boost::none;
         }
 
-        if (delimiter + 1 < parameter_end) {
-            if (auto value = unescape_plus(data.substr(delimiter + 1, parameter_end - delimiter - 1))) {
-                parameter.m_value = std::move(*value);
-            } else {
-                return boost::none;
-            }
+        parameter_string.remove_prefix(name_string.size() + 1);
+
+        if (auto value = unescape(parameter_string)) {
+            parameter.m_value = std::move(*value);
+        } else {
+            return boost::none;
         }
 
         result.m_parameters.push_back(std::move(parameter));
+    }
 
-        parameter_begin = parameter_end + 1;
+    return result;
+}
+
+
+namespace {
+
+bool is_unreserved(unsigned char ch) {
+    return HTTPLIB_NAMESPACE::detail::is_alpha(ch) ||
+           HTTPLIB_NAMESPACE::detail::is_digit(ch) ||
+           ch == '-' ||
+           ch == '.' ||
+           ch == '_' ||
+           ch == '~';
+}
+
+unsigned char to_upper_case(unsigned char ch) {
+    if (ch >= 0x61 && ch <= 0x7A) { // a-z
+        return ch - 0x61 + 0x41; // to A-Z
+    } else {
+        return ch;
+    }
+}
+
+unsigned char to_lower_case(unsigned char ch) {
+    if (ch >= 0x41 && ch <= 0x5A) { // A-Z
+        return ch - 0x41 + 0x61; // to a-z
+    } else {
+        return ch;
+    }
+}
+
+std::string to_lower_case(boost::string_view str) {
+    std::string result;
+    result.reserve(str.size());
+
+    for (auto ch: str) {
+        result.push_back(to_lower_case(ch));
+    }
+
+    return result;
+}
+
+} // namespace
+
+
+std::string HTTPLIB_NAMESPACE::normalize_percent_encoding(boost::string_view data) {
+    std::string result;
+
+    for (auto it = data.begin(); it < data.end(); ++it) {
+        if (*it == '%') {
+            auto escape_sequence_it = it;
+            ++escape_sequence_it;
+
+            if (escape_sequence_it == data.end()) {
+                result.push_back(*it);
+                continue;
+            }
+
+            char high_digit_char = *escape_sequence_it;
+            unsigned int high_digit = 0;
+
+            if (!hex_digit_to_number(high_digit_char, high_digit)) {
+                result.push_back(*it);
+                continue;
+            }
+
+            ++escape_sequence_it;
+
+            if (escape_sequence_it == data.end()) {
+                result.push_back(*it);
+                continue;
+            }
+
+            char low_digit_char = *escape_sequence_it;
+            unsigned int low_digit = 0;
+
+            if (!hex_digit_to_number(low_digit_char, low_digit)) {
+                result.push_back(*it);
+                continue;
+            }
+
+            unsigned char unescaped = high_digit * 16 + low_digit;
+
+            if (is_unreserved(unescaped)) {
+                result.push_back(unescaped);
+            } else {
+                result.push_back('%');
+                result.push_back(to_upper_case(high_digit_char));
+                result.push_back(to_upper_case(low_digit_char));
+            }
+
+            it = escape_sequence_it;
+        } else {
+            result.push_back(*it);
+        }
+    }
+
+    return result;
+}
+
+
+std::string HTTPLIB_NAMESPACE::normalize_path(boost::string_view path) {
+    // Implementation of https://tools.ietf.org/html/rfc3986#section-5.2.4
+
+    std::vector<boost::string_view> segments;
+
+    while (!path.empty()) {
+        if (path.starts_with("./")) {
+            path = path.substr(std::strlen("./"));
+        } else if (path.starts_with("../")) {
+            path = path.substr(std::strlen("../"));
+        } else if (path.starts_with("/./")) {
+            path = path.substr(std::strlen("/."));
+        } else if (path == "/.") {
+            // Replace it with the last empty segment.
+            segments.push_back(path.substr(0, std::strlen("/")));
+            path = boost::string_view();
+        } else if (path.starts_with("/../")) {
+            if (!segments.empty()) {
+                segments.pop_back();
+            }
+
+            path = path.substr(std::strlen("/.."));
+        } else if (path == "/..") {
+            if (!segments.empty()) {
+                segments.pop_back();
+            }
+
+            // Replace it with the last empty segment.
+            segments.push_back(path.substr(0, std::strlen("/")));
+            path = boost::string_view();
+        } else if (path == ".") {
+            path = boost::string_view();
+        } else if (path == "..") {
+            path = boost::string_view();
+        } else {
+            auto segment_end = path.find('/', 1);
+            segments.push_back(path.substr(0, segment_end));
+
+            if (segment_end != boost::string_view::npos) {
+                path = path.substr(segment_end);
+            } else {
+                path = boost::string_view();
+            }
+        }
+    }
+
+    std::string result;
+
+    for (const auto &segment: segments) {
+        result.append(segment.data(), segment.size());
+    }
+
+    return result;
+}
+
+
+HTTPLIB_NAMESPACE::url_t HTTPLIB_NAMESPACE::normalize_url(const url_t &url, bool normalize_http) {
+    url_t result;
+
+    if (url.schema) {
+        result.schema = to_lower_case(*url.schema);
+    }
+
+    result.user_info = url.user_info;
+
+    if (url.host) {
+        result.host = to_lower_case(*url.host);
+    }
+
+    result.port = url.port;
+    result.path = normalize_percent_encoding(normalize_path(url.path));
+
+    if (url.query) {
+        result.query = normalize_percent_encoding(*url.query);
+    }
+
+    result.fragment = url.fragment;
+
+    if (normalize_http) {
+        if (result.port && result.schema) {
+            if (*result.port == 80 && *result.schema == "http") {
+                result.port = boost::none;
+            } else if (*result.port == 443 && *result.schema == "https") {
+                result.port = boost::none;
+            }
+        }
     }
 
     return result;

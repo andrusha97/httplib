@@ -11,13 +11,13 @@ HTTPLIB_OPEN_NAMESPACE
 
 
 struct url_t {
-    std::string schema;
-    std::string user_info;
-    std::string host;
+    boost::optional<std::string> schema;
+    boost::optional<std::string> user_info;
+    boost::optional<std::string> host;
     boost::optional<uint16_t> port;
     std::string path;
-    std::string query;
-    std::string fragment;
+    boost::optional<std::string> query;
+    boost::optional<std::string> fragment;
 };
 
 

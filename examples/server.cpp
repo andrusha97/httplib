@@ -70,24 +70,26 @@ private:
         std::cerr << "Received a request:" << std::endl
                   << req << std::endl;
 
-        if (auto url = httplib::parse_url(req.url)) {
-            std::cerr << "Parsed url:" << std::endl;
-            std::cerr << "Schema: " << url->schema << std::endl;
-            std::cerr << "User info: " << url->user_info << std::endl;
-            std::cerr << "Host: " << url->host << std::endl;
+        if (auto raw_url = httplib::parse_url(req.url)) {
+            auto url = httplib::normalize_url(*raw_url);
 
-            if (url->port) {
-                std::cerr << "Port: " << *url->port << std::endl;
+            std::cerr << "Parsed url:" << std::endl;
+            std::cerr << "Schema: " << url.schema.value_or("none") << std::endl;
+            std::cerr << "User info: " << url.user_info.value_or("none") << std::endl;
+            std::cerr << "Host: " << url.host.value_or("none") << std::endl;
+
+            if (url.port) {
+                std::cerr << "Port: " << *url.port << std::endl;
             } else {
                 std::cerr << "Port: none" << std::endl;
             }
 
-            std::cerr << "Path: " << url->path << std::endl;
-            std::cerr << "Query: " << url->query << std::endl;
-            std::cerr << "Fragment: " << url->fragment << std::endl;
+            std::cerr << "Path: " << url.path << std::endl;
+            std::cerr << "Query: " << url.query.value_or("none") << std::endl;
+            std::cerr << "Fragment: " << url.fragment.value_or("none") << std::endl;
 
 
-            if (auto query = httplib::parse_query(url->query)) {
+            if (auto query = httplib::parse_query(url.query.value_or(""))) {
                 for (const auto &parameter: *query) {
                     std::cerr << "Query parameter: '" << parameter.name() << "', '" << parameter.value() << "'" << std::endl;
                 }
@@ -231,6 +233,40 @@ private:
 
 
 int main() {
+    auto url = httplib::normalize_url(
+        *httplib::parse_url("HtTps://loCalhOst:443/./../abc/de/../?gfe_%72d=cr&q=%d1%82%d0%b5%D1%81%D1%82&abc&=def&asdf=#wwww")
+    );
+
+    std::cerr << "Schema: " << url.schema.value_or("none") << std::endl;
+    std::cerr << "User info: " << url.user_info.value_or("none") << std::endl;
+    std::cerr << "Host: " << url.host.value_or("none") << std::endl;
+
+    if (url.port) {
+        std::cerr << "Port: " << *url.port << std::endl;
+    } else {
+        std::cerr << "Port: none" << std::endl;
+    }
+
+    std::cerr << "Path: " << url.path << std::endl;
+    std::cerr << "Query: " << url.query.value_or("none") << std::endl;
+    std::cerr << "Fragment: " << url.fragment.value_or("none") << std::endl;
+
+
+    if (auto query = httplib::parse_query(url.query.value_or(""))) {
+        for (const auto &parameter: *query) {
+            std::cerr << "Query parameter: '" << parameter.name() << "', '" << parameter.value() << "'" << std::endl;
+        }
+    } else {
+        std::cerr << "Failed to parse query!" << std::endl;
+    }
+
+
+    std::cerr << "Built up url: " << httplib::build_url(url) << std::endl;
+
+
+    return 0;
+
+
     server_t server;
     server.run();
     return 0;

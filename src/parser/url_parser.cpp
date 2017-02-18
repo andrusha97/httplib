@@ -446,6 +446,10 @@ HTTPLIB_NAMESPACE::url_t HTTPLIB_NAMESPACE::normalize_url(const url_t &url, bool
                 result.port = boost::none;
             }
         }
+
+        if (result.path.empty()) {
+            result.path = "/";
+        }
     }
 
     return result;

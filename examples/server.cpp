@@ -85,6 +85,15 @@ private:
             std::cerr << "Path: " << url->path << std::endl;
             std::cerr << "Query: " << url->query << std::endl;
             std::cerr << "Fragment: " << url->fragment << std::endl;
+
+
+            if (auto query = httplib::parse_query(url->query)) {
+                for (const auto &parameter: *query) {
+                    std::cerr << "Query parameter: '" << parameter.name() << "', '" << parameter.value() << "'" << std::endl;
+                }
+            } else {
+                std::cerr << "Failed to parse query!" << std::endl;
+            }
         } else {
             std::cerr << "Failed to parse url!" << std::endl;
         }

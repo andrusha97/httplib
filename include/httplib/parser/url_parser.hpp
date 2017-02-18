@@ -52,7 +52,7 @@ private:
 };
 
 
-// Unescape percent-encoded string. If decode_plus is true, '+' is replaced with ' '.
+// Unescape percent-encoded string, '+' is replaced with ' '.
 boost::optional<std::string> unescape_plus(boost::string_view data);
 
 

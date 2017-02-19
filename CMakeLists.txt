@@ -35,13 +35,13 @@ ADD_LIBRARY(httplib
     ${PROJECT_SOURCE_DIR}/src/http/request.cpp
     ${PROJECT_SOURCE_DIR}/src/http/response.cpp
     ${PROJECT_SOURCE_DIR}/src/http/status_code.cpp
+    ${PROJECT_SOURCE_DIR}/src/http/url.cpp
     ${PROJECT_SOURCE_DIR}/src/parser/chunked_body_parser.cpp
     ${PROJECT_SOURCE_DIR}/src/parser/detail/utility.cpp
     ${PROJECT_SOURCE_DIR}/src/parser/extension_list_parser.cpp
     ${PROJECT_SOURCE_DIR}/src/parser/request_parser.cpp
     ${PROJECT_SOURCE_DIR}/src/parser/response_parser.cpp
     ${PROJECT_SOURCE_DIR}/src/parser/token_list_parser.cpp
-    ${PROJECT_SOURCE_DIR}/src/parser/url_parser.cpp
     ${PROJECT_SOURCE_DIR}/src/response_builder.cpp
 )
 

@@ -127,11 +127,11 @@ make_body_reader(const http_request_t &request, BufferedReadStream &stream, read
                 return result_t(make_body_reader_error_t::bad_message);
             }
 
-            if (parsed->size() != 1) {
+            if (parsed->extensions.size() != 1) {
                 return result_t(make_body_reader_error_t::unsupported_encoding);
             }
 
-            if (*parsed->begin() != "chunked") {
+            if (*parsed->extensions.begin() != "chunked") {
                 return result_t(make_body_reader_error_t::bad_message);
             }
 

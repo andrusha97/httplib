@@ -1,14 +1,28 @@
-#include <httplib/parser/url_parser.hpp>
+#include <httplib/http/url.hpp>
 #include <httplib/parser/detail/utility.hpp>
 
 #include <http_parser.h>
 
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <cstring>
 #include <vector>
+
+
+boost::optional<const HTTPLIB_NAMESPACE::query_parameter_t &> HTTPLIB_NAMESPACE::query_t::get(boost::string_view name) const {
+    auto it = std::find_if(parameters.begin(), parameters.end(),
+        [&name](const auto &parameter) {
+            return parameter.name == name;
+        }
+    );
+
+    if (it != parameters.end()) {
+        return *it;
+    } else {
+        return boost::none;
+    }
+}
 
 
 boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view data) {
@@ -125,49 +139,7 @@ std::string HTTPLIB_NAMESPACE::build_url(const url_t &url) {
 }
 
 
-boost::string_view HTTPLIB_NAMESPACE::query_parameter_t::name() const {
-    return m_name;
-}
-
-
-boost::string_view HTTPLIB_NAMESPACE::query_parameter_t::value() const {
-    return m_value;
-}
-
-
-std::size_t HTTPLIB_NAMESPACE::query_t::size() const {
-    return m_parameters.size();
-}
-
-HTTPLIB_NAMESPACE::query_t::const_iterator HTTPLIB_NAMESPACE::query_t::begin() const {
-    return m_parameters.begin();
-}
-
-HTTPLIB_NAMESPACE::query_t::const_iterator HTTPLIB_NAMESPACE::query_t::end() const {
-    return m_parameters.end();
-}
-
-bool HTTPLIB_NAMESPACE::query_t::has(boost::string_view name) const {
-    return static_cast<bool>(get(name));
-}
-
-boost::optional<const HTTPLIB_NAMESPACE::query_parameter_t &> HTTPLIB_NAMESPACE::query_t::get(boost::string_view name) const {
-    auto it = std::find_if(m_parameters.begin(), m_parameters.end(),
-        [&name](const auto &parameter) {
-            return parameter.name() == name;
-        }
-    );
-
-    if (it != m_parameters.end()) {
-        return *it;
-    } else {
-        return boost::none;
-    }
-}
-
-
 namespace {
-
 
 bool hex_digit_to_number(unsigned char digit, unsigned int &result) {
     if (digit >= static_cast<unsigned char>('0') && digit <= static_cast<unsigned char>('9')) {
@@ -183,87 +155,6 @@ bool hex_digit_to_number(unsigned char digit, unsigned int &result) {
         return false;
     }
 }
-
-
-} // namespace
-
-
-boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data) {
-    std::string result;
-
-    for (auto it = data.begin(); it < data.end(); ++it) {
-        if (*it == '+') {
-            result.push_back(' ');
-        } else if (*it == '%') {
-            ++it;
-
-            if (it == data.end()) {
-                return boost::none;
-            }
-
-            unsigned int high_digit = 0;
-
-            if (!hex_digit_to_number(*it, high_digit)) {
-                return boost::none;
-            }
-
-            ++it;
-
-            if (it == data.end()) {
-                return boost::none;
-            }
-
-            unsigned int low_digit = 0;
-
-            if (!hex_digit_to_number(*it, low_digit)) {
-                return boost::none;
-            }
-
-            result.push_back(static_cast<unsigned char>(high_digit * 16 + low_digit));
-        } else {
-            result.push_back(*it);
-        }
-    }
-
-    return result;
-}
-
-
-boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost::string_view query) {
-    query_t result;
-
-    while (!query.empty()) {
-        // W3C recommends supporting both semicolon and ampersand as delimiters.
-        // https://www.w3.org/TR/html401/appendix/notes.html#ampersands-in-uris
-        auto parameter_string = query.substr(0, query.find_first_of("&;"));
-        query.remove_prefix(parameter_string.size() + 1);
-
-        auto name_string = parameter_string.substr(0, parameter_string.find('='));
-
-        query_parameter_t parameter;
-
-        if (auto name = unescape(name_string)) {
-            parameter.m_name = std::move(*name);
-        } else {
-            return boost::none;
-        }
-
-        parameter_string.remove_prefix(name_string.size() + 1);
-
-        if (auto value = unescape(parameter_string)) {
-            parameter.m_value = std::move(*value);
-        } else {
-            return boost::none;
-        }
-
-        result.m_parameters.push_back(std::move(parameter));
-    }
-
-    return result;
-}
-
-
-namespace {
 
 bool is_unreserved(unsigned char ch) {
     return HTTPLIB_NAMESPACE::detail::is_alpha(ch) ||
@@ -450,6 +341,82 @@ HTTPLIB_NAMESPACE::url_t HTTPLIB_NAMESPACE::normalize_url(const url_t &url, bool
         if (result.path.empty()) {
             result.path = "/";
         }
+    }
+
+    return result;
+}
+
+
+boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data) {
+    std::string result;
+
+    for (auto it = data.begin(); it < data.end(); ++it) {
+        if (*it == '+') {
+            result.push_back(' ');
+        } else if (*it == '%') {
+            ++it;
+
+            if (it == data.end()) {
+                return boost::none;
+            }
+
+            unsigned int high_digit = 0;
+
+            if (!hex_digit_to_number(*it, high_digit)) {
+                return boost::none;
+            }
+
+            ++it;
+
+            if (it == data.end()) {
+                return boost::none;
+            }
+
+            unsigned int low_digit = 0;
+
+            if (!hex_digit_to_number(*it, low_digit)) {
+                return boost::none;
+            }
+
+            result.push_back(static_cast<unsigned char>(high_digit * 16 + low_digit));
+        } else {
+            result.push_back(*it);
+        }
+    }
+
+    return result;
+}
+
+
+boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost::string_view query) {
+    query_t result;
+
+    while (!query.empty()) {
+        // W3C recommends supporting both semicolon and ampersand as delimiters.
+        // https://www.w3.org/TR/html401/appendix/notes.html#ampersands-in-uris
+        // Here too: https://tools.ietf.org/html/rfc1866#section-8.2.1
+        auto parameter_string = query.substr(0, query.find_first_of("&;"));
+        query.remove_prefix(parameter_string.size() + 1);
+
+        auto name_string = parameter_string.substr(0, parameter_string.find('='));
+
+        query_parameter_t parameter;
+
+        if (auto parsed_name = unescape(name_string)) {
+            parameter.name = std::move(*parsed_name);
+        } else {
+            return boost::none;
+        }
+
+        parameter_string.remove_prefix(name_string.size() + 1);
+
+        if (auto parsed_value = unescape(parameter_string)) {
+            parameter.value = std::move(*parsed_value);
+        } else {
+            return boost::none;
+        }
+
+        result.parameters.push_back(std::move(parameter));
     }
 
     return result;

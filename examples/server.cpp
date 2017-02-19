@@ -1,10 +1,9 @@
-#include <httplib/http/message_properties.hpp>
-
 #include <httplib/asio/body_reader.hpp>
 #include <httplib/asio/buffered_read_stream.hpp>
 #include <httplib/asio/read_request.hpp>
 
-#include <httplib/parser/url_parser.hpp>
+#include <httplib/http/message_properties.hpp>
+#include <httplib/http/url.hpp>
 
 #include <httplib/response_builder.hpp>
 
@@ -90,8 +89,8 @@ private:
 
 
             if (auto query = httplib::parse_query(url.query.value_or(""))) {
-                for (const auto &parameter: *query) {
-                    std::cerr << "Query parameter: '" << parameter.name() << "', '" << parameter.value() << "'" << std::endl;
+                for (const auto &parameter: query->parameters) {
+                    std::cerr << "Query parameter: '" << parameter.name << "', '" << parameter.value << "'" << std::endl;
                 }
             } else {
                 std::cerr << "Failed to parse query!" << std::endl;
@@ -253,8 +252,8 @@ int main() {
 
 
     if (auto query = httplib::parse_query(url.query.value_or(""))) {
-        for (const auto &parameter: *query) {
-            std::cerr << "Query parameter: '" << parameter.name() << "', '" << parameter.value() << "'" << std::endl;
+        for (const auto &parameter: query->parameters) {
+            std::cerr << "Query parameter: '" << parameter.name << "', '" << parameter.value << "'" << std::endl;
         }
     } else {
         std::cerr << "Failed to parse query!" << std::endl;

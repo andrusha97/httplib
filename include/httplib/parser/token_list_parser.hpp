@@ -12,55 +12,60 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
-class token_list_t;
 
-
-namespace detail {
-
-class token_access_t;
-class token_list_access_t;
-
-bool parse_token_list(boost::string_view data, token_list_t &result);
-
-} // namespace detail
-
-
-class token_t {
-    friend class detail::token_access_t;
-
-public:
-    boost::string_view value() const;
+struct token_t {
+    std::string value;
 
     // Compare case-insensitively.
     bool equals(boost::string_view value) const;
-    bool operator==(boost::string_view value) const;
-    bool operator!=(boost::string_view value) const;
-
-private:
-    std::string m_value;
 };
 
 
 // *( "," OWS ) token *( OWS "," [ OWS token ] )
-class token_list_t {
-    friend class detail::token_list_access_t;
-
+struct token_list_t {
     using container_type = boost::container::small_vector<token_t, 2>;
 
-public:
-    using const_iterator = container_type::const_iterator;
-
-public:
-    std::size_t size() const;
-
-    const_iterator begin() const;
-    const_iterator end() const;
+    container_type tokens;
 
     bool has(boost::string_view token) const;
-
-private:
-    container_type m_tokens;
 };
+
+
+inline bool operator==(const token_t &one, const token_t &another) {
+    return one.equals(another.value);
+}
+
+
+inline bool operator!=(const token_t &one, const token_t &another) {
+    return !(one == another);
+}
+
+
+inline bool operator==(const token_t &one, boost::string_view another) {
+    return one.equals(another);
+}
+
+
+inline bool operator!=(const token_t &one, boost::string_view another) {
+    return !(one == another);
+}
+
+
+inline bool operator==(boost::string_view one, const token_t &another) {
+    return another.equals(one);
+}
+
+
+inline bool operator!=(boost::string_view one, const token_t &another) {
+    return !(one == another);
+}
+
+
+namespace detail {
+
+bool parse_token_list(boost::string_view data, token_list_t &result);
+
+} // namespace detail
 
 
 // Parse a list from a header value.
@@ -84,5 +89,6 @@ boost::optional<token_list_t> parse_token_list(It begin, It end) {
 
     return result;
 }
+
 
 HTTPLIB_CLOSE_NAMESPACE

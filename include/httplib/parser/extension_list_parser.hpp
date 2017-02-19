@@ -12,86 +12,83 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
-class extension_list_t;
-
-
-namespace detail {
-
-class extension_parameter_access_t;
-class extension_access_t;
-class extension_list_access_t;
-
-bool parse_extension_list(boost::string_view data, extension_list_t &result);
-
-} // namespace detail
-
 
 // token BWS "=" BWS ( token / quoted-string )
-class extension_parameter_t {
-    friend class detail::extension_parameter_access_t;
-
-public:
-    boost::string_view name() const;
-    boost::string_view value() const;
-
-private:
-    std::string m_name;
-    std::string m_value;
+struct extension_parameter_t {
+    std::string name;
+    std::string value;
 };
 
 
 // token *( OWS ";" OWS extension-parameter )
-class extension_t {
-    friend class detail::extension_access_t;
-
+struct extension_t {
     using parameters_container_type = boost::container::small_vector<extension_parameter_t, 1>;
 
-public:
-    using const_iterator = parameters_container_type::const_iterator;
+    std::string name;
+    parameters_container_type parameters;
 
-public:
-    boost::string_view name() const;
 
-    std::size_t parameters_number() const;
+    bool has_parameter(boost::string_view name) const {
+        return static_cast<bool>(parameter(name));
+    }
 
-    const_iterator parameters_begin() const;
-    const_iterator parameters_end() const;
-
-    bool has_parameter(boost::string_view name) const;
     boost::optional<const extension_parameter_t &> parameter(boost::string_view name) const;
 
     // Compare name case-insensitively.
     bool equals(boost::string_view name) const;
-    bool operator==(boost::string_view name) const;
-    bool operator!=(boost::string_view name) const;
-
-private:
-    std::string m_name;
-    parameters_container_type m_parameters;
 };
 
 
 // *( "," OWS ) extension *( OWS "," [ OWS extension ] )
-class extension_list_t {
-    friend class detail::extension_list_access_t;
+struct extension_list_t {
+    using container_type = boost::container::small_vector<extension_t, 2>;
 
-    using extensions_container_type = boost::container::small_vector<extension_t, 2>;
+    container_type extensions;
 
-public:
-    using const_iterator = extensions_container_type::const_iterator;
 
-public:
-    std::size_t size() const;
+    bool has(boost::string_view name) const {
+        return static_cast<bool>(get(name));
+    }
 
-    const_iterator begin() const;
-    const_iterator end() const;
-
-    bool has(boost::string_view name) const;
     boost::optional<const extension_t &> get(boost::string_view name) const;
-
-private:
-    extensions_container_type m_extensions;
 };
+
+
+inline bool operator==(const extension_t &one, const extension_t &another) {
+    return one.equals(another.name);
+}
+
+
+inline bool operator!=(const extension_t &one, const extension_t &another) {
+    return !(one == another);
+}
+
+
+inline bool operator==(const extension_t &one, boost::string_view another) {
+    return one.equals(another);
+}
+
+
+inline bool operator!=(const extension_t &one, boost::string_view another) {
+    return !(one == another);
+}
+
+
+inline bool operator==(boost::string_view one, const extension_t &another) {
+    return another.equals(one);
+}
+
+
+inline bool operator!=(boost::string_view one, const extension_t &another) {
+    return !(one == another);
+}
+
+
+namespace detail {
+
+bool parse_extension_list(boost::string_view data, extension_list_t &result);
+
+} // namespace detail
 
 
 // Parse a list from a header value.

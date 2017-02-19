@@ -82,7 +82,7 @@ public:
     }
 
     iterator end() {
-        return m_headers.begin();
+        return m_headers.end();
     }
 
     const_iterator begin() const {
@@ -90,7 +90,7 @@ public:
     }
 
     const_iterator end() const {
-        return m_headers.begin();
+        return m_headers.end();
     }
 
     const_iterator cbegin() const {
@@ -98,7 +98,7 @@ public:
     }
 
     const_iterator cend() const {
-        return m_headers.cbegin();
+        return m_headers.cend();
     }
 
     reverse_iterator rbegin() {
@@ -106,7 +106,7 @@ public:
     }
 
     reverse_iterator rend() {
-        return m_headers.rbegin();
+        return m_headers.rend();
     }
 
     const_reverse_iterator rbegin() const {
@@ -114,7 +114,7 @@ public:
     }
 
     const_reverse_iterator rend() const {
-        return m_headers.rbegin();
+        return m_headers.rend();
     }
 
     const_reverse_iterator crbegin() const {
@@ -122,7 +122,7 @@ public:
     }
 
     const_reverse_iterator crend() const {
-        return m_headers.crbegin();
+        return m_headers.crend();
     }
 
     iterator find(boost::string_view name) {

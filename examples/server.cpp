@@ -232,6 +232,13 @@ private:
 
 
 int main() {
+    std::cerr << httplib::build_query({{
+        {"abc def", "12 3"},
+        {"!@#$%^&*()-_~=", "тест"},
+        {"key", "value"}
+    }}) << std::endl;
+
+
     auto url = httplib::normalize_url(
         *httplib::parse_url("HtTps://loCalhOst:443/./../abc/de/../?gfe_%72d=cr&q=%d1%82%d0%b5%D1%81%D1%82&abc&=def&asdf=#wwww")
     );
@@ -260,7 +267,7 @@ int main() {
     }
 
 
-    std::cerr << "Built up url: " << httplib::build_url(url) << std::endl;
+    std::cerr << "Built up url: " << url << std::endl;
 
 
     return 0;

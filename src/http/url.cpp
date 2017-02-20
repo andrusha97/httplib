@@ -139,6 +139,42 @@ std::string HTTPLIB_NAMESPACE::build_url(const url_t &url) {
 }
 
 
+std::ostream &HTTPLIB_NAMESPACE::operator<<(std::ostream &stream, const url_t &url) {
+    // The same algorithm as build_url. https://tools.ietf.org/html/rfc3986#section-5.3
+    if (url.schema) {
+        stream << *url.schema << ":";
+    }
+
+    if (url.user_info || url.host || url.port) {
+        stream << "//";
+
+        if (url.user_info) {
+            stream << *url.user_info << "@";
+        }
+
+        if (url.host) {
+            stream << *url.host;
+        }
+
+        if (url.port) {
+            stream << ":" << *url.port;
+        }
+    }
+
+    stream << url.path;
+
+    if (url.query) {
+        stream << "?" << *url.query;
+    }
+
+    if (url.fragment) {
+        stream << "#" << *url.fragment;
+    }
+
+    return stream;
+}
+
+
 namespace {
 
 bool hex_digit_to_number(unsigned char digit, unsigned int &result) {
@@ -347,11 +383,13 @@ HTTPLIB_NAMESPACE::url_t HTTPLIB_NAMESPACE::normalize_url(const url_t &url, bool
 }
 
 
-boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data) {
+namespace {
+
+boost::optional<std::string> unescape_impl(boost::string_view data, bool plus) {
     std::string result;
 
     for (auto it = data.begin(); it < data.end(); ++it) {
-        if (*it == '+') {
+        if (plus && *it == '+') {
             result.push_back(' ');
         } else if (*it == '%') {
             ++it;
@@ -387,6 +425,18 @@ boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data
     return result;
 }
 
+} // namespace
+
+
+boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data) {
+    return unescape_impl(data, false);
+}
+
+
+boost::optional<std::string> HTTPLIB_NAMESPACE::unescape_plus(boost::string_view data) {
+    return unescape_impl(data, true);
+}
+
 
 boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost::string_view query) {
     query_t result;
@@ -402,7 +452,7 @@ boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost
 
         query_parameter_t parameter;
 
-        if (auto parsed_name = unescape(name_string)) {
+        if (auto parsed_name = unescape_plus(name_string)) {
             parameter.name = std::move(*parsed_name);
         } else {
             return boost::none;
@@ -410,13 +460,75 @@ boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost
 
         parameter_string.remove_prefix(name_string.size() + 1);
 
-        if (auto parsed_value = unescape(parameter_string)) {
+        if (auto parsed_value = unescape_plus(parameter_string)) {
             parameter.value = std::move(*parsed_value);
         } else {
             return boost::none;
         }
 
         result.parameters.push_back(std::move(parameter));
+    }
+
+    return result;
+}
+
+
+namespace {
+
+std::string escape_impl(boost::string_view data, bool plus) {
+    // FIXME:
+    // This algorithm escapes all but unreserved charecters according to RFC 3986.
+    // But https://www.w3.org/TR/html5/forms.html#url-encoded-form-data defines slightly different
+    // set of charecters to leave unescaped.
+    // What is the right way to implement this?
+
+    std::string result;
+
+    const char *hex = "0123456789ABCDEF";
+
+    for (auto it = data.begin(); it < data.end(); ++it) {
+        if (plus && *it == ' ') {
+            result.push_back('+');
+        } else if (is_unreserved(*it)) {
+            result.push_back(*it);
+        } else {
+            unsigned char uch = *it;
+            result.push_back('%');
+            result.push_back(hex[uch / 16]);
+            result.push_back(hex[uch % 16]);
+        }
+    }
+
+    return result;
+}
+
+} // namespace
+
+
+std::string HTTPLIB_NAMESPACE::escape(boost::string_view data) {
+    return escape_impl(data, false);
+}
+
+
+std::string HTTPLIB_NAMESPACE::escape_plus(boost::string_view data) {
+    return escape_impl(data, true);
+}
+
+
+std::string HTTPLIB_NAMESPACE::build_query(const query_t &query) {
+    std::string result;
+    bool first = true;
+
+    for (const auto &parameter: query.parameters) {
+        if (!first) {
+            result.push_back('&');
+        } else {
+            first = false;
+        }
+
+        result += escape_plus(parameter.name);
+        result.push_back('=');
+        result += escape_plus(parameter.value);
     }
 
     return result;

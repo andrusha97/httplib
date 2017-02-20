@@ -5,6 +5,7 @@
 #include <boost/optional.hpp>
 #include <boost/utility/string_view.hpp>
 
+#include <iostream>
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -58,6 +59,8 @@ boost::optional<url_t> parse_url(boost::string_view data);
 // https://tools.ietf.org/html/rfc3986#section-5.3
 std::string build_url(const url_t &url);
 
+std::ostream &operator<<(std::ostream &stream, const url_t &url);
+
 
 // Unescape percent-encoded characters from the unreserved set,
 // normalize all percent-encoded sequences to upper-case.
@@ -77,12 +80,27 @@ std::string normalize_path(boost::string_view path);
 url_t normalize_url(const url_t &url, bool normalize_http = true);
 
 
-// Unescape percent-encoded string, '+' is replaced with ' '.
+// Escape all charecters except ones from the unreserved set.
+std::string escape(boost::string_view data);
+
+
+// Escape all charecters except ones from the unreserved set. Spaces are replaced with '+'.
+std::string escape_plus(boost::string_view data);
+
+
+// Unescape percent-encoded string.
 boost::optional<std::string> unescape(boost::string_view data);
+
+
+// Unescape percent-encoded string, '+' is replaced with ' '.
+boost::optional<std::string> unescape_plus(boost::string_view data);
 
 
 // https://www.w3.org/TR/html5/forms.html#url-encoded-form-data
 boost::optional<query_t> parse_query(boost::string_view data);
+
+
+std::string build_query(const query_t &query);
 
 
 HTTPLIB_CLOSE_NAMESPACE

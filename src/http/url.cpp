@@ -477,9 +477,9 @@ namespace {
 
 std::string escape_impl(boost::string_view data, bool plus) {
     // FIXME:
-    // This algorithm escapes all but unreserved charecters according to RFC 3986.
+    // This algorithm escapes all but unreserved characters according to RFC 3986.
     // But https://www.w3.org/TR/html5/forms.html#url-encoded-form-data defines slightly different
-    // set of charecters to leave unescaped.
+    // set of characters to leave unescaped.
     // What is the right way to implement this?
 
     std::string result;

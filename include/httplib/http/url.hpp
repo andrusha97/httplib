@@ -80,11 +80,11 @@ std::string normalize_path(boost::string_view path);
 url_t normalize_url(const url_t &url, bool normalize_http = true);
 
 
-// Escape all charecters except ones from the unreserved set.
+// Escape all characters except ones from the unreserved set.
 std::string escape(boost::string_view data);
 
 
-// Escape all charecters except ones from the unreserved set. Spaces are replaced with '+'.
+// Escape all characters except ones from the unreserved set. Spaces are replaced with '+'.
 std::string escape_plus(boost::string_view data);
 
 

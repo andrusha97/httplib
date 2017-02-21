@@ -10,6 +10,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 struct body_size_t {
     enum class type_t {
         content_length,
@@ -21,6 +22,7 @@ struct body_size_t {
     content_length_int_t content_length;
 };
 
+
 boost::optional<body_size_t> body_size(const http_request_t &request);
 boost::optional<body_size_t> body_size(const http_response_t &response);
 boost::optional<body_size_t> body_size(const http_response_t &response, const http_request_t &original_request);
@@ -30,6 +32,7 @@ enum class connection_status_t {
     keep_alive,
     close
 };
+
 
 boost::optional<connection_status_t> connection_status(const http_request_t &request);
 boost::optional<connection_status_t> connection_status(const http_response_t &response);

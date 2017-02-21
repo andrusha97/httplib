@@ -13,6 +13,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 class chunked_body_parser_t {
 public:
     struct none_t { };
@@ -56,5 +57,6 @@ private:
 
     std::unique_ptr<implementation_t> m_implementation;
 };
+
 
 HTTPLIB_CLOSE_NAMESPACE

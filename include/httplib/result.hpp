@@ -9,6 +9,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 namespace detail {
 
 template<class T, class Tag>
@@ -118,6 +119,7 @@ result<V, E> make_result(Args &&... args) {
     return result<V, E>(typename result<V, E>::value_tag_t(), std::forward<Args>(args)...);
 }
 
+
 template<class V, class E, class... Args>
 result<V, E> make_error_result(Args &&... args) {
     return result<V, E>(typename result<V, E>::error_tag_t(), std::forward<Args>(args)...);
@@ -140,5 +142,6 @@ template<class Value, class Error>
 bool operator!=(const result<Value, Error> &one, const result<Value, Error> &another) {
     return !(one == another);
 }
+
 
 HTTPLIB_CLOSE_NAMESPACE

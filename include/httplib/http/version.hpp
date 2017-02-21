@@ -5,6 +5,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 struct http_version_t {
     unsigned int major;
     unsigned int minor;
@@ -19,30 +20,37 @@ struct http_version_t {
     { }
 };
 
+
 inline bool operator==(const http_version_t &one, const http_version_t &another) {
     return one.major == another.major &&
            one.minor == another.minor;
 }
+
 
 inline bool operator<(const http_version_t &one, const http_version_t &another) {
     return one.major < another.major ||
            (one.major == another.major && one.minor < another.minor);
 }
 
+
 inline bool operator!=(const http_version_t &one, const http_version_t &another) {
     return !(one == another);
 }
+
 
 inline bool operator>(const http_version_t &one, const http_version_t &another) {
     return another < one;
 }
 
+
 inline bool operator<=(const http_version_t &one, const http_version_t &another) {
     return !(one > another);
 }
 
+
 inline bool operator>=(const http_version_t &one, const http_version_t &another) {
     return !(one < another);
 }
+
 
 HTTPLIB_CLOSE_NAMESPACE

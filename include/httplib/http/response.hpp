@@ -9,6 +9,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 struct http_response_t {
     unsigned int code = 0;
     std::string reason;
@@ -16,6 +17,8 @@ struct http_response_t {
     http_headers_t headers;
 };
 
+
 std::ostream &operator<<(std::ostream &stream, const http_response_t &response);
+
 
 HTTPLIB_CLOSE_NAMESPACE

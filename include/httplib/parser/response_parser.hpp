@@ -12,6 +12,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 class http_response_parser_t {
 public:
     http_response_parser_t();
@@ -37,5 +38,6 @@ private:
 
     std::unique_ptr<implementation_t> m_implementation;
 };
+
 
 HTTPLIB_CLOSE_NAMESPACE

@@ -11,6 +11,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 namespace detail {
 
 // tchar = "!" / "#" / "$" / "%" / "&" / "'" / "*" / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~" / DIGIT / ALPHA
@@ -37,5 +38,6 @@ boost::optional<std::string> parse_quoted_string(boost::string_view &data);
 void skip_optional_whitespaces(boost::string_view &data);
 
 } // namespace detail
+
 
 HTTPLIB_CLOSE_NAMESPACE

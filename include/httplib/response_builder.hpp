@@ -12,6 +12,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 class http_response_builder_t {
 public:
     http_response_builder_t();
@@ -39,7 +40,7 @@ private:
 };
 
 
-enum prepare_response_error_t {
+enum class prepare_response_error_t {
     bad_message,
     unsupported_version
 };
@@ -50,5 +51,6 @@ prepare_response(const http_request_t &request);
 
 
 status_code_t response_status_from_error(prepare_response_error_t error);
+
 
 HTTPLIB_CLOSE_NAMESPACE

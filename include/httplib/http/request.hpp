@@ -9,6 +9,7 @@
 
 HTTPLIB_OPEN_NAMESPACE
 
+
 struct http_request_t {
     std::string method;
     std::string url;
@@ -16,6 +17,8 @@ struct http_request_t {
     http_headers_t headers;
 };
 
+
 std::ostream &operator<<(std::ostream &stream, const http_request_t &request);
+
 
 HTTPLIB_CLOSE_NAMESPACE

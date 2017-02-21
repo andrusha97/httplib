@@ -10,7 +10,10 @@
 #include <vector>
 
 
-boost::optional<const HTTPLIB_NAMESPACE::query_parameter_t &> HTTPLIB_NAMESPACE::query_t::get(boost::string_view name) const {
+HTTPLIB_OPEN_NAMESPACE
+
+
+boost::optional<const query_parameter_t &> query_t::get(boost::string_view name) const {
     auto it = std::find_if(parameters.begin(), parameters.end(),
         [&name](const auto &parameter) {
             return parameter.name == name;
@@ -25,7 +28,7 @@ boost::optional<const HTTPLIB_NAMESPACE::query_parameter_t &> HTTPLIB_NAMESPACE:
 }
 
 
-boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view data) {
+boost::optional<url_t> parse_url(boost::string_view data) {
     joyent::http_parser_url parser;
     joyent::http_parser_url_init(&parser);
 
@@ -33,7 +36,7 @@ boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view 
         return boost::none;
     }
 
-    httplib::url_t result;
+    url_t result;
 
     if (parser.field_set & (1 << joyent::UF_SCHEMA)) {
         result.schema = data.substr(parser.field_data[joyent::UF_SCHEMA].off,
@@ -95,7 +98,7 @@ boost::optional<httplib::url_t> HTTPLIB_NAMESPACE::parse_url(boost::string_view 
 }
 
 
-std::string HTTPLIB_NAMESPACE::build_url(const url_t &url) {
+std::string build_url(const url_t &url) {
     // https://tools.ietf.org/html/rfc3986#section-5.3
 
     std::string result;
@@ -139,7 +142,7 @@ std::string HTTPLIB_NAMESPACE::build_url(const url_t &url) {
 }
 
 
-std::ostream &HTTPLIB_NAMESPACE::operator<<(std::ostream &stream, const url_t &url) {
+std::ostream &operator<<(std::ostream &stream, const url_t &url) {
     // The same algorithm as build_url. https://tools.ietf.org/html/rfc3986#section-5.3
     if (url.schema) {
         stream << *url.schema << ":";
@@ -193,8 +196,8 @@ bool hex_digit_to_number(unsigned char digit, unsigned int &result) {
 }
 
 bool is_unreserved(unsigned char ch) {
-    return HTTPLIB_NAMESPACE::detail::is_alpha(ch) ||
-           HTTPLIB_NAMESPACE::detail::is_digit(ch) ||
+    return detail::is_alpha(ch) ||
+           detail::is_digit(ch) ||
            ch == '-' ||
            ch == '.' ||
            ch == '_' ||
@@ -231,7 +234,7 @@ std::string to_lower_case(boost::string_view str) {
 } // namespace
 
 
-std::string HTTPLIB_NAMESPACE::normalize_percent_encoding(boost::string_view data) {
+std::string normalize_percent_encoding(boost::string_view data) {
     std::string result;
 
     for (auto it = data.begin(); it < data.end(); ++it) {
@@ -287,7 +290,7 @@ std::string HTTPLIB_NAMESPACE::normalize_percent_encoding(boost::string_view dat
 }
 
 
-std::string HTTPLIB_NAMESPACE::normalize_path(boost::string_view path) {
+std::string normalize_path(boost::string_view path) {
     // Implementation of https://tools.ietf.org/html/rfc3986#section-5.2.4
 
     std::vector<boost::string_view> segments;
@@ -343,7 +346,7 @@ std::string HTTPLIB_NAMESPACE::normalize_path(boost::string_view path) {
 }
 
 
-HTTPLIB_NAMESPACE::url_t HTTPLIB_NAMESPACE::normalize_url(const url_t &url, bool normalize_http) {
+url_t normalize_url(const url_t &url, bool normalize_http) {
     url_t result;
 
     if (url.schema) {
@@ -428,17 +431,17 @@ boost::optional<std::string> unescape_impl(boost::string_view data, bool plus) {
 } // namespace
 
 
-boost::optional<std::string> HTTPLIB_NAMESPACE::unescape(boost::string_view data) {
+boost::optional<std::string> unescape(boost::string_view data) {
     return unescape_impl(data, false);
 }
 
 
-boost::optional<std::string> HTTPLIB_NAMESPACE::unescape_plus(boost::string_view data) {
+boost::optional<std::string> unescape_plus(boost::string_view data) {
     return unescape_impl(data, true);
 }
 
 
-boost::optional<HTTPLIB_NAMESPACE::query_t> HTTPLIB_NAMESPACE::parse_query(boost::string_view query) {
+boost::optional<query_t> parse_query(boost::string_view query) {
     query_t result;
 
     while (!query.empty()) {
@@ -505,17 +508,17 @@ std::string escape_impl(boost::string_view data, bool plus) {
 } // namespace
 
 
-std::string HTTPLIB_NAMESPACE::escape(boost::string_view data) {
+std::string escape(boost::string_view data) {
     return escape_impl(data, false);
 }
 
 
-std::string HTTPLIB_NAMESPACE::escape_plus(boost::string_view data) {
+std::string escape_plus(boost::string_view data) {
     return escape_impl(data, true);
 }
 
 
-std::string HTTPLIB_NAMESPACE::build_query(const query_t &query) {
+std::string build_query(const query_t &query) {
     std::string result;
     bool first = true;
 
@@ -533,3 +536,6 @@ std::string HTTPLIB_NAMESPACE::build_query(const query_t &query) {
 
     return result;
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

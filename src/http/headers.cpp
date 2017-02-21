@@ -1,8 +1,11 @@
 #include <httplib/http/headers.hpp>
 
 
-boost::optional<const httplib::http_headers_t::header_value_t &>
-httplib::http_headers_t::get_header(boost::string_view name) const {
+HTTPLIB_OPEN_NAMESPACE
+
+
+boost::optional<const http_headers_t::header_value_t &>
+http_headers_t::get_header(boost::string_view name) const {
     auto header_it = m_headers.find(name);
 
     if (header_it != m_headers.end() && header_it->second.size() == 1) {
@@ -13,8 +16,8 @@ httplib::http_headers_t::get_header(boost::string_view name) const {
 }
 
 
-boost::optional<const httplib::http_headers_t::header_values_t &>
-httplib::http_headers_t::get_header_values(boost::string_view name) const {
+boost::optional<const http_headers_t::header_values_t &>
+http_headers_t::get_header_values(boost::string_view name) const {
     auto header_it = m_headers.find(name);
 
     if (header_it != m_headers.end()) {
@@ -25,7 +28,7 @@ httplib::http_headers_t::get_header_values(boost::string_view name) const {
 }
 
 
-void httplib::http_headers_t::set_header(boost::string_view name, const header_values_t &values) {
+void http_headers_t::set_header(boost::string_view name, const header_values_t &values) {
     if (values.empty()) {
         remove_header(name);
     } else {
@@ -40,7 +43,7 @@ void httplib::http_headers_t::set_header(boost::string_view name, const header_v
 }
 
 
-void httplib::http_headers_t::add_header_values(boost::string_view name, const header_values_t &values) {
+void http_headers_t::add_header_values(boost::string_view name, const header_values_t &values) {
     if (values.empty()) {
         return;
     }
@@ -61,7 +64,7 @@ void httplib::http_headers_t::add_header_values(boost::string_view name, const h
 }
 
 
-void httplib::http_headers_t::remove_header(boost::string_view name) {
+void http_headers_t::remove_header(boost::string_view name) {
     auto header_it = m_headers.find(name);
 
     if (header_it != m_headers.end()) {
@@ -73,7 +76,7 @@ void httplib::http_headers_t::remove_header(boost::string_view name) {
 }
 
 
-std::ostream &HTTPLIB_NAMESPACE::operator<<(std::ostream &stream, const http_headers_t &headers) {
+std::ostream &operator<<(std::ostream &stream, const http_headers_t &headers) {
     auto home_it = headers.find("home");
 
     // Print the Home header first, as it's recommended by rfc7230.
@@ -93,3 +96,6 @@ std::ostream &HTTPLIB_NAMESPACE::operator<<(std::ostream &stream, const http_hea
 
     return stream;
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

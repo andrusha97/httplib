@@ -5,7 +5,10 @@
 #include <http_parser.h>
 
 
-class httplib::chunked_body_parser_t::implementation_t {
+HTTPLIB_OPEN_NAMESPACE
+
+
+class chunked_body_parser_t::implementation_t {
 public:
     http_parsing_options_t options;
 
@@ -161,47 +164,49 @@ private:
 };
 
 
-httplib::chunked_body_parser_t::chunked_body_parser_t() :
+chunked_body_parser_t::chunked_body_parser_t() :
     m_implementation(std::make_unique<implementation_t>())
 { }
 
-httplib::chunked_body_parser_t::chunked_body_parser_t(const chunked_body_parser_t &other) :
+chunked_body_parser_t::chunked_body_parser_t(const chunked_body_parser_t &other) :
     m_implementation(std::make_unique<implementation_t>(*other.m_implementation))
 { }
 
-httplib::chunked_body_parser_t::chunked_body_parser_t(chunked_body_parser_t &&other) :
+chunked_body_parser_t::chunked_body_parser_t(chunked_body_parser_t &&other) :
     m_implementation(std::move(other.m_implementation))
 { }
 
-httplib::chunked_body_parser_t::~chunked_body_parser_t() { }
+chunked_body_parser_t::~chunked_body_parser_t() { }
 
-httplib::chunked_body_parser_t &httplib::chunked_body_parser_t::operator=(const chunked_body_parser_t &other) {
+chunked_body_parser_t &chunked_body_parser_t::operator=(const chunked_body_parser_t &other) {
     m_implementation = std::make_unique<implementation_t>(*other.m_implementation);
     return *this;
 }
 
-httplib::chunked_body_parser_t &httplib::chunked_body_parser_t::operator=(chunked_body_parser_t &&other) {
+chunked_body_parser_t &chunked_body_parser_t::operator=(chunked_body_parser_t &&other) {
     m_implementation = std::move(other.m_implementation);
     return *this;
 }
 
-void httplib::chunked_body_parser_t::set_options(http_parsing_options_t options) {
+void chunked_body_parser_t::set_options(http_parsing_options_t options) {
     m_implementation->options = options;
 }
 
-httplib::chunked_body_parser_t::result_t
-httplib::chunked_body_parser_t::parse(const char *data, std::size_t size) {
+chunked_body_parser_t::result_t chunked_body_parser_t::parse(const char *data, std::size_t size) {
     return m_implementation->parse(data, size);
 }
 
-bool httplib::chunked_body_parser_t::done() const {
+bool chunked_body_parser_t::done() const {
     return m_implementation->state == implementation_t::state_t::done;
 }
 
-httplib::http_headers_t &httplib::chunked_body_parser_t::headers() {
+http_headers_t &chunked_body_parser_t::headers() {
     return m_implementation->headers;
 }
 
-const httplib::http_headers_t &httplib::chunked_body_parser_t::headers() const {
+const http_headers_t &chunked_body_parser_t::headers() const {
     return m_implementation->headers;
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

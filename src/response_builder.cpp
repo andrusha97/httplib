@@ -5,50 +5,53 @@
 #include <boost/lexical_cast.hpp>
 
 
-httplib::http_response_builder_t::http_response_builder_t() :
+HTTPLIB_OPEN_NAMESPACE
+
+
+http_response_builder_t::http_response_builder_t() :
     m_version({1, 1})
 { }
 
 
-httplib::http_response_builder_t &httplib::http_response_builder_t::version(http_version_t version) {
+http_response_builder_t &http_response_builder_t::version(http_version_t version) {
     m_version = version;
     return *this;
 }
 
-httplib::http_response_builder_t &httplib::http_response_builder_t::add_header(const std::string &name, const std::string &value) {
+http_response_builder_t &http_response_builder_t::add_header(const std::string &name, const std::string &value) {
     m_headers.add_header_values(name, {value});
     return *this;
 }
 
 
-httplib::http_response_builder_t &httplib::http_response_builder_t::keep_alive() {
+http_response_builder_t &http_response_builder_t::keep_alive() {
     m_connection_status = connection_status_t::keep_alive;
 
     return *this;
 }
 
-httplib::http_response_builder_t &httplib::http_response_builder_t::connection_close() {
+http_response_builder_t &http_response_builder_t::connection_close() {
     m_connection_status = connection_status_t::close;
 
     return *this;
 }
 
-httplib::http_response_builder_t &httplib::http_response_builder_t::content_length(std::size_t length) {
+http_response_builder_t &http_response_builder_t::content_length(std::size_t length) {
     m_body_size = body_size_t{body_size_t::type_t::content_length, length};
     return *this;
 }
 
-httplib::http_response_builder_t &httplib::http_response_builder_t::chunked_encoding() {
+http_response_builder_t &http_response_builder_t::chunked_encoding() {
     m_body_size = body_size_t{body_size_t::type_t::transfer_encoding, 0};
     return *this;
 }
 
 
-httplib::http_response_t httplib::http_response_builder_t::build(const status_code_t &status) const {
+http_response_t http_response_builder_t::build(const status_code_t &status) const {
     return build(status.code(), status.description().to_string());
 }
 
-httplib::http_response_t httplib::http_response_builder_t::build(unsigned int code, const std::string &reason) const {
+http_response_t http_response_builder_t::build(unsigned int code, const std::string &reason) const {
     http_response_t response;
 
     response.code = code;
@@ -88,25 +91,25 @@ httplib::http_response_t httplib::http_response_builder_t::build(unsigned int co
     return response;
 }
 
-httplib::http_version_t httplib::http_response_builder_t::version() const {
+http_version_t http_response_builder_t::version() const {
     return m_version;
 }
 
-httplib::http_headers_t httplib::http_response_builder_t::headers() const {
+http_headers_t http_response_builder_t::headers() const {
     return m_headers;
 }
 
-boost::optional<httplib::connection_status_t> httplib::http_response_builder_t::connection_status() const {
+boost::optional<connection_status_t> http_response_builder_t::connection_status() const {
     return m_connection_status;
 }
 
-boost::optional<httplib::body_size_t> httplib::http_response_builder_t::body_size() const {
+boost::optional<body_size_t> http_response_builder_t::body_size() const {
     return m_body_size;
 }
 
 
-httplib::result<httplib::http_response_builder_t, httplib::prepare_response_error_t>
-HTTPLIB_NAMESPACE::prepare_response(const http_request_t &request) {
+result<http_response_builder_t, prepare_response_error_t>
+prepare_response(const http_request_t &request) {
     using result_t = result<http_response_builder_t, prepare_response_error_t>;
 
     if (request.version.major < 1) {
@@ -132,7 +135,7 @@ HTTPLIB_NAMESPACE::prepare_response(const http_request_t &request) {
 }
 
 
-httplib::status_code_t HTTPLIB_NAMESPACE::response_status_from_error(prepare_response_error_t error) {
+status_code_t response_status_from_error(prepare_response_error_t error) {
     switch (error) {
         case prepare_response_error_t::bad_message:
             return STATUS_400_BAD_REQUEST;
@@ -140,3 +143,6 @@ httplib::status_code_t HTTPLIB_NAMESPACE::response_status_from_error(prepare_res
             return STATUS_505_HTTP_VERSION_NOT_SUPPORTED;
     }
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

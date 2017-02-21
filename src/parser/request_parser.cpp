@@ -5,7 +5,10 @@
 #include <http_parser.h>
 
 
-class httplib::http_request_parser_t::implementation_t {
+HTTPLIB_OPEN_NAMESPACE
+
+
+class http_request_parser_t::implementation_t {
 public:
     http_parsing_options_t options;
 
@@ -191,50 +194,53 @@ private:
 };
 
 
-httplib::http_request_parser_t::http_request_parser_t() :
+http_request_parser_t::http_request_parser_t() :
     m_implementation(std::make_unique<implementation_t>())
 { }
 
-httplib::http_request_parser_t::http_request_parser_t(const http_request_parser_t &other) :
+http_request_parser_t::http_request_parser_t(const http_request_parser_t &other) :
     m_implementation(std::make_unique<implementation_t>(*other.m_implementation))
 { }
 
-httplib::http_request_parser_t::http_request_parser_t(http_request_parser_t &&other) :
+http_request_parser_t::http_request_parser_t(http_request_parser_t &&other) :
     m_implementation(std::move(other.m_implementation))
 { }
 
-httplib::http_request_parser_t::~http_request_parser_t() { }
+http_request_parser_t::~http_request_parser_t() { }
 
-httplib::http_request_parser_t &httplib::http_request_parser_t::operator=(const http_request_parser_t &other) {
+http_request_parser_t &http_request_parser_t::operator=(const http_request_parser_t &other) {
     m_implementation = std::make_unique<implementation_t>(*other.m_implementation);
     return *this;
 }
 
-httplib::http_request_parser_t &httplib::http_request_parser_t::operator=(http_request_parser_t &&other) {
+http_request_parser_t &http_request_parser_t::operator=(http_request_parser_t &&other) {
     m_implementation = std::move(other.m_implementation);
     return *this;
 }
 
-void httplib::http_request_parser_t::set_options(http_parsing_options_t options) {
+void http_request_parser_t::set_options(http_parsing_options_t options) {
     m_implementation->options = options;
 }
 
-std::size_t httplib::http_request_parser_t::parse(const char *data, std::size_t size) {
+std::size_t http_request_parser_t::parse(const char *data, std::size_t size) {
     return m_implementation->parse(data, size);
 }
 
-bool httplib::http_request_parser_t::done() const {
+bool http_request_parser_t::done() const {
     return m_implementation->state == implementation_t::state_t::done;
 }
 
-boost::system::error_code httplib::http_request_parser_t::error() const {
+boost::system::error_code http_request_parser_t::error() const {
     return m_implementation->error;
 }
 
-httplib::http_request_t &httplib::http_request_parser_t::request() {
+http_request_t &http_request_parser_t::request() {
     return m_implementation->request;
 }
 
-const httplib::http_request_t &httplib::http_request_parser_t::request() const {
+const http_request_t &http_request_parser_t::request() const {
     return m_implementation->request;
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

@@ -4,12 +4,15 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 
-bool HTTPLIB_NAMESPACE::token_t::equals(boost::string_view other) const {
+HTTPLIB_OPEN_NAMESPACE
+
+
+bool token_t::equals(boost::string_view other) const {
  return boost::algorithm::iequals(value, other);
 }
 
 
-bool HTTPLIB_NAMESPACE::token_list_t::has(boost::string_view token) const {
+bool token_list_t::has(boost::string_view token) const {
     auto it = std::find_if(tokens.begin(), tokens.end(),
         [&token](const auto &v) {
             return v.equals(token);
@@ -20,7 +23,7 @@ bool HTTPLIB_NAMESPACE::token_list_t::has(boost::string_view token) const {
 }
 
 
-bool HTTPLIB_NAMESPACE::detail::parse_token_list(boost::string_view data, token_list_t &result) {
+bool detail::parse_token_list(boost::string_view data, token_list_t &result) {
     while (true) {
         if (data.empty()) {
             return false;
@@ -68,7 +71,7 @@ bool HTTPLIB_NAMESPACE::detail::parse_token_list(boost::string_view data, token_
 }
 
 
-boost::optional<httplib::token_list_t> HTTPLIB_NAMESPACE::parse_token_list(boost::string_view data) {
+boost::optional<token_list_t> parse_token_list(boost::string_view data) {
     token_list_t result;
 
     if (detail::parse_token_list(data, result)) {
@@ -77,3 +80,6 @@ boost::optional<httplib::token_list_t> HTTPLIB_NAMESPACE::parse_token_list(boost
         return boost::none;
     }
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

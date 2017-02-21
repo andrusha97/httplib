@@ -5,7 +5,10 @@
 #include <boost/lexical_cast.hpp>
 
 
-boost::optional<httplib::body_size_t> HTTPLIB_NAMESPACE::body_size(const http_request_t &request) {
+HTTPLIB_OPEN_NAMESPACE
+
+
+boost::optional<body_size_t> body_size(const http_request_t &request) {
     if (request.version >= http_version_t{1, 1}) {
         if (auto transfer_encoding = request.headers.get_header_values("Transfer-Encoding")) {
             if (!transfer_encoding->empty()) {
@@ -32,7 +35,7 @@ boost::optional<httplib::body_size_t> HTTPLIB_NAMESPACE::body_size(const http_re
 }
 
 
-boost::optional<httplib::body_size_t> HTTPLIB_NAMESPACE::body_size(const http_response_t &response) {
+boost::optional<body_size_t> body_size(const http_response_t &response) {
     if ((response.code >= 100 && response.code < 200) || response.code == 204 || response.code == 304) {
         return body_size_t{body_size_t::type_t::content_length, 0};
     }
@@ -63,7 +66,7 @@ boost::optional<httplib::body_size_t> HTTPLIB_NAMESPACE::body_size(const http_re
 }
 
 
-boost::optional<httplib::body_size_t> HTTPLIB_NAMESPACE::body_size(const http_response_t &response,
+boost::optional<body_size_t> body_size(const http_response_t &response,
                                                                const http_request_t &original_request)
 {
     if ((response.code >= 100 && response.code < 200) || response.code == 204 || response.code == 304) {
@@ -107,12 +110,12 @@ boost::optional<httplib::body_size_t> HTTPLIB_NAMESPACE::body_size(const http_re
 namespace {
 
 template<class MessageHead>
-boost::optional<httplib::connection_status_t> connection_status_impl(const MessageHead &message) {
+boost::optional<connection_status_t> connection_status_impl(const MessageHead &message) {
     bool has_close = false;
     bool has_keep_alive = false;
 
     if (auto connection = message.headers.get_header_values("Connection")) {
-        auto tokens = httplib::parse_token_list(connection->begin(), connection->end());
+        auto tokens = parse_token_list(connection->begin(), connection->end());
 
         if (!tokens) {
             return boost::none;
@@ -123,23 +126,26 @@ boost::optional<httplib::connection_status_t> connection_status_impl(const Messa
     }
 
     if (has_close) {
-        return httplib::connection_status_t::close;
-    } else if (message.version >= httplib::http_version_t{1, 1}) {
-        return httplib::connection_status_t::keep_alive;
-    } else if (message.version == httplib::http_version_t{1, 0} && has_keep_alive) {
-        return httplib::connection_status_t::keep_alive;
+        return connection_status_t::close;
+    } else if (message.version >= http_version_t{1, 1}) {
+        return connection_status_t::keep_alive;
+    } else if (message.version == http_version_t{1, 0} && has_keep_alive) {
+        return connection_status_t::keep_alive;
     } else {
-        return httplib::connection_status_t::close;
+        return connection_status_t::close;
     }
 }
 
 } // namespace
 
 
-boost::optional<httplib::connection_status_t> HTTPLIB_NAMESPACE::connection_status(const http_request_t &request) {
+boost::optional<connection_status_t> connection_status(const http_request_t &request) {
     return connection_status_impl(request);
 }
 
-boost::optional<httplib::connection_status_t> HTTPLIB_NAMESPACE::connection_status(const http_response_t &response) {
+boost::optional<connection_status_t> connection_status(const http_response_t &response) {
     return connection_status_impl(response);
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

@@ -3,6 +3,9 @@
 #include <http_parser.h>
 
 
+HTTPLIB_OPEN_NAMESPACE
+
+
 namespace {
 
 class parser_error_category_t : public boost::system::error_category {
@@ -13,15 +16,15 @@ public:
 
     std::string message(int code) const override {
         switch (code) {
-            case static_cast<int>(httplib::parser_errc_t::too_long_header):
+            case static_cast<int>(parser_errc_t::too_long_header):
                 return "Too long header";
-            case static_cast<int>(httplib::parser_errc_t::too_many_headers):
+            case static_cast<int>(parser_errc_t::too_many_headers):
                 return "Too many headers";
-            case static_cast<int>(httplib::parser_errc_t::too_long_url):
+            case static_cast<int>(parser_errc_t::too_long_url):
                 return "Too long url";
-            case static_cast<int>(httplib::parser_errc_t::too_long_reason):
+            case static_cast<int>(parser_errc_t::too_long_reason):
                 return "Too long reason";
-            case static_cast<int>(httplib::parser_errc_t::invalid_parser):
+            case static_cast<int>(parser_errc_t::invalid_parser):
                 return "Invalid parser";
             default:
                 return "HTTP parser error";
@@ -39,15 +42,15 @@ public:
 
 } // namespace
 
-boost::system::error_code HTTPLIB_NAMESPACE::make_error_code(parser_errc_t e) noexcept {
+boost::system::error_code make_error_code(parser_errc_t e) noexcept {
     return boost::system::error_code(static_cast<int>(e), parser_category());
 }
 
-boost::system::error_condition HTTPLIB_NAMESPACE::make_error_condition(parser_errc_t e) noexcept {
+boost::system::error_condition make_error_condition(parser_errc_t e) noexcept {
     return boost::system::error_condition(static_cast<int>(e), parser_category());
 }
 
-const boost::system::error_category &HTTPLIB_NAMESPACE::parser_category() noexcept {
+const boost::system::error_category &parser_category() noexcept {
     static parser_error_category_t category;
 
     return category;
@@ -63,18 +66,18 @@ public:
     }
 
     std::string message(int code) const override {
-        if (code < 0 || code > httplib::joyent::HPE_UNKNOWN) {
-            code = httplib::joyent::HPE_UNKNOWN;
+        if (code < 0 || code > joyent::HPE_UNKNOWN) {
+            code = joyent::HPE_UNKNOWN;
         }
 
-        return http_errno_description(static_cast<httplib::joyent::http_errno>(code));
+        return http_errno_description(static_cast<joyent::http_errno>(code));
     }
 };
 
 } // namespace
 
 
-const boost::system::error_category &HTTPLIB_NAMESPACE::underlying_parser_category() noexcept {
+const boost::system::error_category &underlying_parser_category() noexcept {
     static underlying_parser_error_category_t category;
 
     return category;
@@ -91,7 +94,7 @@ public:
 
     std::string message(int code) const override {
         switch (code) {
-            case static_cast<int>(httplib::reader_errc_t::eof):
+            case static_cast<int>(reader_errc_t::eof):
                 return "End of file";
             default:
                 return "HTTP reader error";
@@ -101,16 +104,19 @@ public:
 
 } // namespace
 
-boost::system::error_code HTTPLIB_NAMESPACE::make_error_code(reader_errc_t e) noexcept {
+boost::system::error_code make_error_code(reader_errc_t e) noexcept {
     return boost::system::error_code(static_cast<int>(e), reader_category());
 }
 
-boost::system::error_condition HTTPLIB_NAMESPACE::make_error_condition(reader_errc_t e) noexcept {
+boost::system::error_condition make_error_condition(reader_errc_t e) noexcept {
     return boost::system::error_condition(static_cast<int>(e), reader_category());
 }
 
-const boost::system::error_category &HTTPLIB_NAMESPACE::reader_category() noexcept {
+const boost::system::error_category &reader_category() noexcept {
     static reader_error_category_t category;
 
     return category;
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

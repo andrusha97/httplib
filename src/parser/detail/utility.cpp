@@ -1,7 +1,10 @@
 #include <httplib/parser/detail/utility.hpp>
 
 
-bool HTTPLIB_NAMESPACE::detail::is_tchar(char ch) {
+HTTPLIB_OPEN_NAMESPACE
+
+
+bool detail::is_tchar(char ch) {
     switch (static_cast<unsigned char>(ch)) {
         case 0: return false;
         case 1: return false;
@@ -263,7 +266,7 @@ bool HTTPLIB_NAMESPACE::detail::is_tchar(char ch) {
     }
 }
 
-bool HTTPLIB_NAMESPACE::detail::is_qdtext(char ch) {
+bool detail::is_qdtext(char ch) {
     switch (static_cast<unsigned char>(ch)) {
         case 0: return false;
         case 1: return false;
@@ -525,7 +528,7 @@ bool HTTPLIB_NAMESPACE::detail::is_qdtext(char ch) {
     }
 }
 
-bool HTTPLIB_NAMESPACE::detail::is_quoted_pair_char(char ch) {
+bool detail::is_quoted_pair_char(char ch) {
     switch (static_cast<unsigned char>(ch)) {
         case 0: return false;
         case 1: return false;
@@ -787,22 +790,22 @@ bool HTTPLIB_NAMESPACE::detail::is_quoted_pair_char(char ch) {
     }
 }
 
-bool HTTPLIB_NAMESPACE::detail::is_whitespace(char ch) {
+bool detail::is_whitespace(char ch) {
     unsigned char uch = ch;
     return uch == 0x20 || uch == 0x09;
 }
 
-bool HTTPLIB_NAMESPACE::detail::is_alpha(char ch) {
+bool detail::is_alpha(char ch) {
     unsigned char uch = ch;
     return (uch >= 0x41 && uch <= 0x5a) || (uch >= 0x61 && uch <= 0x7a);
 }
 
-bool HTTPLIB_NAMESPACE::detail::is_digit(char ch) {
+bool detail::is_digit(char ch) {
     unsigned char uch = ch;
     return uch >= 0x30 && uch <= 0x39;
 }
 
-boost::optional<std::string> HTTPLIB_NAMESPACE::detail::parse_token(boost::string_view &data) {
+boost::optional<std::string> detail::parse_token(boost::string_view &data) {
     std::size_t token_size = 0;
 
     for (; token_size < data.size(); ++token_size) {
@@ -820,7 +823,7 @@ boost::optional<std::string> HTTPLIB_NAMESPACE::detail::parse_token(boost::strin
     }
 }
 
-boost::optional<std::string> HTTPLIB_NAMESPACE::detail::parse_quoted_string(boost::string_view &data) {
+boost::optional<std::string> detail::parse_quoted_string(boost::string_view &data) {
     if (data.empty()) {
         return boost::none;
     }
@@ -861,7 +864,7 @@ boost::optional<std::string> HTTPLIB_NAMESPACE::detail::parse_quoted_string(boos
     return boost::none;
 }
 
-void HTTPLIB_NAMESPACE::detail::skip_optional_whitespaces(boost::string_view &data) {
+void detail::skip_optional_whitespaces(boost::string_view &data) {
     auto it = data.begin();
     auto end = data.end();
 
@@ -871,3 +874,6 @@ void HTTPLIB_NAMESPACE::detail::skip_optional_whitespaces(boost::string_view &da
 
     data = data.substr(it - data.begin());
 }
+
+
+HTTPLIB_CLOSE_NAMESPACE

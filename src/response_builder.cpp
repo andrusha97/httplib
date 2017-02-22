@@ -142,6 +142,9 @@ status_code_t response_status_from_error(prepare_response_error_t error) {
         case prepare_response_error_t::unsupported_version:
             return STATUS_505_HTTP_VERSION_NOT_SUPPORTED;
     }
+
+    // Passing an invalid enum value is definitely an internal server error.
+    return STATUS_500_INTERNAL_SERVER_ERROR;
 }
 
 

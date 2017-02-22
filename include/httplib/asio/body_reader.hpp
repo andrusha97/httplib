@@ -101,6 +101,9 @@ inline status_code_t response_status_from_error(make_body_reader_error_t error) 
         case make_body_reader_error_t::unsupported_encoding:
             return STATUS_501_NOT_IMPLEMENTED;
     }
+
+    // Passing an invalid enum value is definitely an internal server error.
+    return STATUS_500_INTERNAL_SERVER_ERROR;
 }
 
 

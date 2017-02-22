@@ -15,8 +15,8 @@ struct http_version_t {
     { }
 
     http_version_t(unsigned int major, unsigned int minor) :
-        major(major),
-        minor(minor)
+        major {major},
+        minor {minor}
     { }
 };
 

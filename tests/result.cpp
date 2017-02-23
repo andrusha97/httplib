@@ -416,13 +416,13 @@ TEST_CASE("result's equality operator", "[result]") {
         REQUIRE(!(result1 == result2));
     }
 
-    /*SECTION("implicit conversions to values") {
+    SECTION("implicit conversions to values") {
         const httplib::result<int, std::string> result = 5;
         REQUIRE(result == 5);
         REQUIRE(5 == result);
         REQUIRE(!(result == 15));
         REQUIRE(!(15 == result));
-    }*/
+    }
 
     SECTION("value and error") {
         using result_t = httplib::result<int, std::string>;
@@ -432,8 +432,8 @@ TEST_CASE("result's equality operator", "[result]") {
         REQUIRE(!(result2 == result1));
         REQUIRE(!(result1 == httplib::make_error_result<result_t>("abc")));
         REQUIRE(!(httplib::make_error_result<result_t>("abc") == result1));
-        //REQUIRE(!(result2 == 5));
-        //REQUIRE(!(5 == result2));
+        REQUIRE(!(result2 == 5));
+        REQUIRE(!(5 == result2));
     }
 
     SECTION("value and error of the same type") {
@@ -473,13 +473,13 @@ TEST_CASE("result's inequality operator", "[result]") {
         REQUIRE(result1 != result2);
     }
 
-    /*SECTION("implicit conversions to values") {
+    SECTION("implicit conversions to values") {
         const httplib::result<int, std::string> result = 5;
         REQUIRE(!(result != 5));
         REQUIRE(!(5 != result));
         REQUIRE(result != 15);
         REQUIRE(15 != result);
-    }*/
+    }
 
     SECTION("value and error") {
         using result_t = httplib::result<int, std::string>;
@@ -489,8 +489,8 @@ TEST_CASE("result's inequality operator", "[result]") {
         REQUIRE(result2 != result1);
         REQUIRE(result1 != httplib::make_error_result<result_t>("abc"));
         REQUIRE(httplib::make_error_result<result_t>("abc") != result1);
-        //REQUIRE(result2 != 5);
-        //REQUIRE(5 != result2);
+        REQUIRE(result2 != 5);
+        REQUIRE(5 != result2);
     }
 
     SECTION("value and error of the same type") {

@@ -119,7 +119,11 @@ public:
         m_data(error_variant_t())
     { }
 
-    result(value_type value) :
+    result(const value_type &value) :
+        m_data(value_variant_t(value))
+    { }
+
+    result(value_type &&value) :
         m_data(value_variant_t(std::move(value)))
     { }
 
@@ -226,8 +230,32 @@ bool operator==(const result<Value, Error> &one, const result<Value, Error> &ano
 
 
 template<class Value, class Error>
+bool operator==(const result<Value, Error> &one, const Value &another) {
+    return !one.is_error() && one.value() == another;
+}
+
+
+template<class Value, class Error>
+bool operator==(const Value &one, const result<Value, Error> &another) {
+    return another == one;
+}
+
+
+template<class Value, class Error>
 bool operator!=(const result<Value, Error> &one, const result<Value, Error> &another) {
     return !(one == another);
+}
+
+
+template<class Value, class Error>
+bool operator!=(const result<Value, Error> &one, const Value &another) {
+    return one.is_error() || one.value() != another;
+}
+
+
+template<class Value, class Error>
+bool operator!=(const Value &one, const result<Value, Error> &another) {
+    return another != one;
 }
 
 

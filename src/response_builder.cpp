@@ -113,7 +113,7 @@ prepare_response(const http_request_t &request) {
     using result_t = result<http_response_builder_t, prepare_response_error_t>;
 
     if (request.version.major < 1) {
-        return result_t(prepare_response_error_t::unsupported_version);
+        return make_error_result<result_t>(prepare_response_error_t::unsupported_version);
     }
 
     http_response_builder_t builder;
@@ -128,7 +128,7 @@ prepare_response(const http_request_t &request) {
             } break;
         }
     } else {
-        return result_t(prepare_response_error_t::bad_message);
+        return make_error_result<result_t>(prepare_response_error_t::bad_message);
     }
 
     return result_t(std::move(builder));

@@ -6,6 +6,7 @@
 
 #include <boost/variant.hpp>
 
+#include <cassert>
 #include <limits>
 
 
@@ -104,7 +105,7 @@ make_body_reader(const http_request_t &request, BufferedReadStream &stream, read
     auto size = body_size(request);
 
     if (!size) {
-        return result_t(make_body_reader_error_t::bad_message);
+        return make_error_result<result_t>(make_body_reader_error_t::bad_message);
     }
 
     switch (size->type) {
@@ -118,21 +119,21 @@ make_body_reader(const http_request_t &request, BufferedReadStream &stream, read
             auto headers = request.headers.get_header_values("Transfer-Encoding");
 
             if (!headers || headers->empty()) {
-                return result_t(make_body_reader_error_t::bad_message);
+                return make_error_result<result_t>(make_body_reader_error_t::bad_message);
             }
 
             auto parsed = parse_extension_list(headers->begin(), headers->end());
 
             if (!parsed) {
-                return result_t(make_body_reader_error_t::bad_message);
+                return make_error_result<result_t>(make_body_reader_error_t::bad_message);
             }
 
             if (parsed->extensions.size() != 1) {
-                return result_t(make_body_reader_error_t::unsupported_encoding);
+                return make_error_result<result_t>(make_body_reader_error_t::unsupported_encoding);
             }
 
             if (*parsed->extensions.begin() != "chunked") {
-                return result_t(make_body_reader_error_t::bad_message);
+                return make_error_result<result_t>(make_body_reader_error_t::bad_message);
             }
 
             return result_t(body_reader<BufferedReadStream>(chunked_body_reader<BufferedReadStream>(stream, options)));
@@ -144,6 +145,9 @@ make_body_reader(const http_request_t &request, BufferedReadStream &stream, read
             ));
         } break;
     }
+
+    assert(false);
+    return make_error_result<result_t>(make_body_reader_error_t::bad_message);
 }
 
 

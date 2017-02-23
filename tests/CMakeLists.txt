@@ -10,7 +10,7 @@ ADD_EXECUTABLE(unittests
 )
 
 TARGET_INCLUDE_DIRECTORIES(unittests SYSTEM PRIVATE
-    ${PROJECT_SOURCE_DIR}/contrib/Catch-1.7.2/single_include
+    ${PROJECT_SOURCE_DIR}/contrib/Catch-1.7.2
 )
 
 TARGET_LINK_LIBRARIES(unittests ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} httplib)

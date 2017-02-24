@@ -21,6 +21,8 @@ TEST_CASE("request's output operator outputs", "[http_request_t]") {
     std::ostringstream stream;
     stream << request;
 
+    REQUIRE(static_cast<bool>(stream));
+
     std::string expected =
         "MyMETHOD /url/path?query&arg=value#frag HTTP/13.37\r\n"
         "Home: localhost\r\n"

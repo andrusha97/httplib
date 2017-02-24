@@ -67,7 +67,7 @@ boost::optional<body_size_t> body_size(const http_response_t &response) {
 
 
 boost::optional<body_size_t> body_size(const http_response_t &response,
-                                                               const http_request_t &original_request)
+                                       const http_request_t &original_request)
 {
     if ((response.code >= 100 && response.code < 200) || response.code == 204 || response.code == 304) {
         return body_size_t{body_size_t::type_t::content_length, 0};

@@ -40,9 +40,7 @@ private:
     using container_t = std::map<header_name_t, header_values_t, detail::ilexicographical_less_t>;
 
 public:
-    using iterator = container_t::iterator;
     using const_iterator = container_t::const_iterator;
-    using reverse_iterator = container_t::reverse_iterator;
     using const_reverse_iterator = container_t::const_reverse_iterator;
 
 public:
@@ -77,14 +75,6 @@ public:
         return m_size;
     }
 
-    iterator begin() {
-        return m_headers.begin();
-    }
-
-    iterator end() {
-        return m_headers.end();
-    }
-
     const_iterator begin() const {
         return m_headers.begin();
     }
@@ -93,40 +83,12 @@ public:
         return m_headers.end();
     }
 
-    const_iterator cbegin() const {
-        return m_headers.cbegin();
-    }
-
-    const_iterator cend() const {
-        return m_headers.cend();
-    }
-
-    reverse_iterator rbegin() {
-        return m_headers.rbegin();
-    }
-
-    reverse_iterator rend() {
-        return m_headers.rend();
-    }
-
     const_reverse_iterator rbegin() const {
         return m_headers.rbegin();
     }
 
     const_reverse_iterator rend() const {
         return m_headers.rend();
-    }
-
-    const_reverse_iterator crbegin() const {
-        return m_headers.crbegin();
-    }
-
-    const_reverse_iterator crend() const {
-        return m_headers.crend();
-    }
-
-    iterator find(boost::string_view name) {
-        return m_headers.find(name);
     }
 
     const_iterator find(boost::string_view name) const {

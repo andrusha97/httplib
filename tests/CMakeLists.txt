@@ -6,6 +6,7 @@ ADD_CUSTOM_TARGET(check
 
 ADD_EXECUTABLE(unittests
     common.cpp
+    http/headers.cpp
     result.cpp
 )
 

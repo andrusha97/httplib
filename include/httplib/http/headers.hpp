@@ -83,14 +83,6 @@ public:
         return m_headers.end();
     }
 
-    const_reverse_iterator rbegin() const {
-        return m_headers.rbegin();
-    }
-
-    const_reverse_iterator rend() const {
-        return m_headers.rend();
-    }
-
     const_iterator find(boost::string_view name) const {
         return m_headers.find(name);
     }

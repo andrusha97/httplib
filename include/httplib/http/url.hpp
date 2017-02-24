@@ -49,7 +49,7 @@ struct query_t {
         return static_cast<bool>(get(name));
     }
 
-    boost::optional<const query_parameter_t &> get(boost::string_view name) const;
+    boost::optional<const std::string &> get(boost::string_view name) const;
 };
 
 

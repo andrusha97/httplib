@@ -13,7 +13,7 @@
 HTTPLIB_OPEN_NAMESPACE
 
 
-boost::optional<const query_parameter_t &> query_t::get(boost::string_view name) const {
+boost::optional<const std::string &> query_t::get(boost::string_view name) const {
     auto it = std::find_if(parameters.begin(), parameters.end(),
         [&name](const auto &parameter) {
             return parameter.name == name;
@@ -21,7 +21,7 @@ boost::optional<const query_parameter_t &> query_t::get(boost::string_view name)
     );
 
     if (it != parameters.end()) {
-        return *it;
+        return it->value;
     } else {
         return boost::none;
     }

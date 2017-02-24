@@ -619,8 +619,7 @@ TEST_CASE("headers' output operator", "[http_headers_t]") {
         "xxx: 3\r\n"
         "xxx: 1\r\n"
         "yyy: 1\r\n"
-        "yyy: 2\r\n"
-        "\r\n";
+        "yyy: 2\r\n";
 
     REQUIRE(headers_to_string(headers) == expected);
 }
@@ -629,8 +628,7 @@ TEST_CASE("headers' output operator", "[http_headers_t]") {
 TEST_CASE("headers' output operator accepts empty headers object", "[http_headers_t]") {
     httplib::http_headers_t headers;
 
-    std::string expected =
-        "\r\n";
+    std::string expected = "";
 
     REQUIRE(headers_to_string(headers) == expected);
 }
@@ -654,8 +652,7 @@ TEST_CASE("headers' output operator accepts empty headers", "[http_headers_t]") 
         "xxx: 3\r\n"
         "xxx: 1\r\n"
         "yyy: 1\r\n"
-        "yyy: 2\r\n"
-        "\r\n";
+        "yyy: 2\r\n";
 
     REQUIRE(headers_to_string(headers) == expected);
 }
@@ -684,8 +681,7 @@ TEST_CASE("headers' output operator puts Home first", "[http_headers_t]") {
         "xxx: 3\r\n"
         "xxx: 1\r\n"
         "yyy: 1\r\n"
-        "yyy: 2\r\n"
-        "\r\n";
+        "yyy: 2\r\n";
 
     REQUIRE(headers_to_string(headers) == expected);
 }

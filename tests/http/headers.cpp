@@ -660,9 +660,9 @@ TEST_CASE("headers' output operator accepts empty headers", "[http_headers_t]") 
 
 TEST_CASE("headers' output operator puts Home first", "[http_headers_t]") {
     httplib::http_headers_t headers = {
-        {"xxx", {"1", "2", "3"}},
+        {"aaa", {"1", "2", "3"}},
         {"yyy", {"1", "2"}},
-        {"XXX", {"1"}},
+        {"AAA", {"1"}},
         {"hOme", {"1"}},
         {"lll", {""}},
         {"Home", {"abc", "de"}},
@@ -674,12 +674,12 @@ TEST_CASE("headers' output operator puts Home first", "[http_headers_t]") {
         "hOme: 1\r\n"
         "hOme: abc\r\n"
         "hOme: de\r\n"
+        "aaa: 1\r\n"
+        "aaa: 2\r\n"
+        "aaa: 3\r\n"
+        "aaa: 1\r\n"
         "kkk: 2\r\n"
         "lll: \r\n"
-        "xxx: 1\r\n"
-        "xxx: 2\r\n"
-        "xxx: 3\r\n"
-        "xxx: 1\r\n"
         "yyy: 1\r\n"
         "yyy: 2\r\n";
 

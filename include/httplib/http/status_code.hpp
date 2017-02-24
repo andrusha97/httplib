@@ -17,6 +17,12 @@ public:
         m_description(description.to_string())
     { }
 
+    status_code_t(const status_code_t &) = default;
+    status_code_t(status_code_t &&) = default;
+
+    status_code_t &operator=(const status_code_t &) = default;
+    status_code_t &operator=(status_code_t &&) = default;
+
     unsigned int code() const {
         return m_code;
     }

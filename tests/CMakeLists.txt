@@ -8,6 +8,9 @@ ADD_EXECUTABLE(unittests
     common.cpp
     http/headers.cpp
     http/request.cpp
+    http/response.cpp
+    http/status_code.cpp
+    http/version.cpp
     result.cpp
 )
 

@@ -1,31 +1,29 @@
 #include <catch.hpp>
 
-#include <httplib/http/request.hpp>
+#include <httplib/http/response.hpp>
 
 #include <sstream>
 
 
-TEST_CASE("request's output operator outputs", "[http_request_t]") {
-    const httplib::http_request_t request {
-        "MyMETHOD",
-        "/url/path?query&arg=value#frag",
-        {13, 37},
+TEST_CASE("response's output operator outputs", "[http_response_t]") {
+    const httplib::http_response_t response {
+        1337,
+        "ABC DE F",
+        {12, 3},
         {
             {"Content-Length", {"10"}},
             {"Content-Type", {"application/json"}},
-            {"Home", {"localhost"}},
             {"xxx", {"yyy", "zzz"}}
         }
     };
 
     std::ostringstream stream;
-    stream << request;
+    stream << response;
 
     REQUIRE(static_cast<bool>(stream));
 
     std::string expected =
-        "MyMETHOD /url/path?query&arg=value#frag HTTP/13.37\r\n"
-        "Home: localhost\r\n"
+        "HTTP/12.3 1337 ABC DE F\r\n"
         "Content-Length: 10\r\n"
         "Content-Type: application/json\r\n"
         "xxx: yyy\r\n"

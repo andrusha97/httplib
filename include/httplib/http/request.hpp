@@ -12,7 +12,7 @@ HTTPLIB_OPEN_NAMESPACE
 
 struct http_request_t {
     std::string method;
-    std::string url;
+    std::string target;
     http_version_t version;
     http_headers_t headers;
 };

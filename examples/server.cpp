@@ -69,7 +69,7 @@ private:
         std::cerr << "Received a request:" << std::endl
                   << req << std::endl;
 
-        if (auto raw_url = httplib::parse_url(req.url)) {
+        if (auto raw_url = httplib::parse_url(req.target)) {
             auto url = httplib::normalize_url(*raw_url);
 
             std::cerr << "Parsed url:" << std::endl;

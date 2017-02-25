@@ -117,9 +117,9 @@ private:
     }
 
     int handle_url(const char *data, size_t size) {
-        request.url.append(data, size);
+        request.target.append(data, size);
 
-        if (request.url.size() > options.max_url_size) {
+        if (request.target.size() > options.max_url_size) {
             error = make_error_code(parser_errc_t::too_long_url);
             return -1;
         }

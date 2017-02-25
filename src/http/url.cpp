@@ -28,7 +28,7 @@ boost::optional<const std::string &> query_t::get(boost::string_view name) const
 }
 
 
-boost::optional<url_t> parse_url(boost::string_view data) {
+boost::optional<http_url_t> parse_url(boost::string_view data) {
     joyent::http_parser_url parser;
     joyent::http_parser_url_init(&parser);
 
@@ -36,7 +36,7 @@ boost::optional<url_t> parse_url(boost::string_view data) {
         return boost::none;
     }
 
-    url_t result;
+    http_url_t result;
 
     if (parser.field_set & (1 << joyent::UF_SCHEMA)) {
         result.schema = data.substr(parser.field_data[joyent::UF_SCHEMA].off,
@@ -45,15 +45,7 @@ boost::optional<url_t> parse_url(boost::string_view data) {
 
     if (parser.field_set & (1 << joyent::UF_USERINFO)) {
         // RFC 7230 forbids user info in http and https url's.
-        if (result.schema &&
-            (boost::algorithm::iequals(*result.schema, "http") ||
-             boost::algorithm::iequals(*result.schema, "https")))
-        {
-            return boost::none;
-        }
-
-        result.user_info = data.substr(parser.field_data[joyent::UF_USERINFO].off,
-                                       parser.field_data[joyent::UF_USERINFO].len).to_string();
+        return boost::none;
     }
 
     if (parser.field_set & (1 << joyent::UF_HOST)) {
@@ -98,7 +90,7 @@ boost::optional<url_t> parse_url(boost::string_view data) {
 }
 
 
-std::string build_url(const url_t &url) {
+std::string build_url(const http_url_t &url) {
     // https://tools.ietf.org/html/rfc3986#section-5.3
 
     std::string result;
@@ -108,13 +100,8 @@ std::string build_url(const url_t &url) {
         result += ":";
     }
 
-    if (url.user_info || url.host || url.port) {
+    if (url.host || url.port) {
         result += "//";
-
-        if (url.user_info) {
-            result += *url.user_info;
-            result += "@";
-        }
 
         if (url.host) {
             result += *url.host;
@@ -142,18 +129,14 @@ std::string build_url(const url_t &url) {
 }
 
 
-std::ostream &operator<<(std::ostream &stream, const url_t &url) {
+std::ostream &operator<<(std::ostream &stream, const http_url_t &url) {
     // The same algorithm as build_url. https://tools.ietf.org/html/rfc3986#section-5.3
     if (url.schema) {
         stream << *url.schema << ":";
     }
 
-    if (url.user_info || url.host || url.port) {
+    if (url.host || url.port) {
         stream << "//";
-
-        if (url.user_info) {
-            stream << *url.user_info << "@";
-        }
 
         if (url.host) {
             stream << *url.host;
@@ -346,41 +329,38 @@ std::string normalize_path(boost::string_view path) {
 }
 
 
-url_t normalize_url(const url_t &url, bool normalize_http) {
-    url_t result;
+http_url_t normalize_url(const http_url_t &url) {
+    http_url_t result;
 
     if (url.schema) {
         result.schema = to_lower_case(*url.schema);
     }
-
-    result.user_info = url.user_info;
 
     if (url.host) {
         result.host = to_lower_case(*url.host);
     }
 
     result.port = url.port;
+
+    if (result.port && result.schema) {
+        if (*result.port == 80 && *result.schema == "http") {
+            result.port = boost::none;
+        } else if (*result.port == 443 && *result.schema == "https") {
+            result.port = boost::none;
+        }
+    }
+
     result.path = normalize_percent_encoding(normalize_path(url.path));
+
+    if (result.path.empty()) {
+        result.path = "/";
+    }
 
     if (url.query) {
         result.query = normalize_percent_encoding(*url.query);
     }
 
     result.fragment = url.fragment;
-
-    if (normalize_http) {
-        if (result.port && result.schema) {
-            if (*result.port == 80 && *result.schema == "http") {
-                result.port = boost::none;
-            } else if (*result.port == 443 && *result.schema == "https") {
-                result.port = boost::none;
-            }
-        }
-
-        if (result.path.empty()) {
-            result.path = "/";
-        }
-    }
 
     return result;
 }

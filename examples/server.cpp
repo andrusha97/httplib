@@ -74,7 +74,6 @@ private:
 
             std::cerr << "Parsed url:" << std::endl;
             std::cerr << "Schema: " << url.schema.value_or("none") << std::endl;
-            std::cerr << "User info: " << url.user_info.value_or("none") << std::endl;
             std::cerr << "Host: " << url.host.value_or("none") << std::endl;
 
             if (url.port) {
@@ -244,7 +243,6 @@ int main() {
     );
 
     std::cerr << "Schema: " << url.schema.value_or("none") << std::endl;
-    std::cerr << "User info: " << url.user_info.value_or("none") << std::endl;
     std::cerr << "Host: " << url.host.value_or("none") << std::endl;
 
     if (url.port) {

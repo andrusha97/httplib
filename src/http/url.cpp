@@ -29,6 +29,11 @@ boost::optional<const std::string &> query_t::get(boost::string_view name) const
 
 
 boost::optional<http_url_t> parse_url(boost::string_view data) {
+    if (data == "*") {
+        // It's a valid request target, but not a url.
+        return boost::none;
+    }
+
     joyent::http_parser_url parser;
     joyent::http_parser_url_init(&parser);
 

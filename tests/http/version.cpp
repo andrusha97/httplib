@@ -2,6 +2,8 @@
 
 #include <httplib/http/version.hpp>
 
+#include <sstream>
+
 
 TEST_CASE("http_version_t default constructor", "[http_version_t]") {
     const httplib::http_version_t version;
@@ -133,4 +135,15 @@ TEST_CASE("http_version_t ordering operators", "[http_version_t]") {
         REQUIRE(!(version1 >= version2));
         REQUIRE(version2 >= version1);
     }
+}
+
+
+TEST_CASE("http_version_t output operator", "[http_version_t]") {
+    const httplib::http_version_t version {12, 34};
+
+    std::ostringstream stream;
+    stream << version;
+
+    REQUIRE(stream);
+    REQUIRE(stream.str() == "12.34");
 }

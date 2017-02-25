@@ -2,6 +2,8 @@
 
 #include <httplib/detail/common.hpp>
 
+#include <iostream>
+
 
 HTTPLIB_OPEN_NAMESPACE
 
@@ -50,6 +52,12 @@ inline bool operator<=(const http_version_t &one, const http_version_t &another)
 
 inline bool operator>=(const http_version_t &one, const http_version_t &another) {
     return !(one < another);
+}
+
+
+inline std::ostream &operator<<(std::ostream &stream, const http_version_t &version) {
+    stream << version.major << "." << version.minor;
+    return stream;
 }
 
 

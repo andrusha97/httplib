@@ -36,6 +36,7 @@ boost::optional<std::string> parse_token(boost::string_view &data);
 boost::optional<std::string> parse_quoted_string(boost::string_view &data);
 
 void skip_optional_whitespaces(boost::string_view &data);
+void remove_trailing_whitespaces(std::string &s);
 
 } // namespace detail
 

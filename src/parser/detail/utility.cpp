@@ -876,4 +876,11 @@ void detail::skip_optional_whitespaces(boost::string_view &data) {
 }
 
 
+void detail::remove_trailing_whitespaces(std::string &s) {
+    while (!s.empty() && is_whitespace(s.back())) {
+        s.pop_back();
+    }
+}
+
+
 HTTPLIB_CLOSE_NAMESPACE

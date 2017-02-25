@@ -2,10 +2,49 @@
 
 #include <httplib/parser/token_list_parser.hpp>
 
-#include <boost/lexical_cast.hpp>
+#include <cctype>
+#include <limits>
 
 
 HTTPLIB_OPEN_NAMESPACE
+
+
+namespace {
+
+// TODO: find some standard function that does exactly the same (no, neither lexical_cast nor stoull do).
+bool parse_content_length(const std::string &str, content_length_int_t &result) {
+    if (str.empty()) {
+        return false;
+    }
+
+    content_length_int_t r = 0;
+
+    for (char ch: str) {
+        if (ch < '0' || ch > '9') {
+            return false;
+        }
+
+        content_length_int_t digit = ch - '0';
+
+        if (std::numeric_limits<content_length_int_t>::max() / 10 < r) {
+            return false;
+        }
+
+        r *= 10;
+
+        if (std::numeric_limits<content_length_int_t>::max() - r < digit) {
+            return false;
+        }
+
+        r += digit;
+    }
+
+    result = r;
+
+    return true;
+}
+
+} // namespace
 
 
 boost::optional<body_size_t> body_size(const http_request_t &request) {
@@ -24,7 +63,7 @@ boost::optional<body_size_t> body_size(const http_request_t &request) {
 
         content_length_int_t parsed_length = 0;
 
-        if (!boost::conversion::try_lexical_convert((*content_length)[0].data(), (*content_length)[0].size(), parsed_length)) {
+        if (!parse_content_length((*content_length)[0], parsed_length)) {
             return boost::none;
         }
 
@@ -55,7 +94,7 @@ boost::optional<body_size_t> body_size(const http_response_t &response) {
 
         content_length_int_t parsed_length = 0;
 
-        if (!boost::conversion::try_lexical_convert((*content_length)[0].data(), (*content_length)[0].size(), parsed_length)) {
+        if (!parse_content_length((*content_length)[0], parsed_length)) {
             return boost::none;
         }
 
@@ -96,7 +135,7 @@ boost::optional<body_size_t> body_size(const http_response_t &response,
 
         content_length_int_t parsed_length = 0;
 
-        if (!boost::conversion::try_lexical_convert((*content_length)[0].data(), (*content_length)[0].size(), parsed_length)) {
+        if (!parse_content_length((*content_length)[0], parsed_length)) {
             return boost::none;
         }
 

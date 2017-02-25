@@ -1,6 +1,7 @@
 #include <httplib/parser/response_parser.hpp>
 
 #include <httplib/error.hpp>
+#include <httplib/parser/detail/utility.hpp>
 
 #include <http_parser.h>
 
@@ -119,6 +120,7 @@ private:
 
     int handle_header_field(const char *data, size_t size) {
         if (state == state_t::parsing_header_value) {
+            detail::remove_trailing_whitespaces(current_header_value);
             response.headers.add_header_values(current_header_name, {std::move(current_header_value)});
             current_header_name.clear();
             current_header_value.clear();
@@ -155,6 +157,7 @@ private:
 
     int handle_headers_complete() {
         if (state == state_t::parsing_header_value) {
+            detail::remove_trailing_whitespaces(current_header_value);
             response.headers.add_header_values(current_header_name, {std::move(current_header_value)});
             current_header_name.clear();
             current_header_value.clear();

@@ -7,6 +7,7 @@ ADD_CUSTOM_TARGET(check
 ADD_EXECUTABLE(unittests
     common.cpp
     http/headers.cpp
+    http/message_properties.cpp
     http/request.cpp
     http/response.cpp
     http/status_code.cpp

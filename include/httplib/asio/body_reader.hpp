@@ -2,6 +2,7 @@
 
 #include <httplib/detail/common.hpp>
 #include <httplib/http/request.hpp>
+#include <httplib/http/response.hpp>
 #include <httplib/http/status_code.hpp>
 #include <httplib/asio/bound_body_reader.hpp>
 #include <httplib/asio/chunked_body_reader.hpp>
@@ -92,6 +93,19 @@ enum class make_body_reader_error_t {
 template<class BufferedReadStream>
 result<body_reader<BufferedReadStream>, make_body_reader_error_t>
 make_body_reader(const http_request_t &request, BufferedReadStream &stream, read_options_t options = {});
+
+
+template<class BufferedReadStream>
+result<body_reader<BufferedReadStream>, make_body_reader_error_t>
+make_body_reader(const http_response_t &response, BufferedReadStream &stream, read_options_t options = {});
+
+
+template<class BufferedReadStream>
+result<body_reader<BufferedReadStream>, make_body_reader_error_t>
+make_body_reader(const http_response_t &response,
+                 const http_request_t &original_request,
+                 BufferedReadStream &stream,
+                 read_options_t options = {});
 
 
 inline status_code_t response_status_from_error(make_body_reader_error_t error) {

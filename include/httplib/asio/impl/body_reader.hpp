@@ -97,32 +97,28 @@ struct body_reader<BufferedReadStream>::read_throw_visitor {
 };
 
 
+namespace detail {
+
 template<class BufferedReadStream>
 result<body_reader<BufferedReadStream>, make_body_reader_error_t>
-make_body_reader(const http_request_t &request, BufferedReadStream &stream, read_options_t options) {
+make_body_reader(body_size_t size, const http_headers_t &headers, BufferedReadStream &stream, read_options_t options) {
     using result_t = result<body_reader<BufferedReadStream>, make_body_reader_error_t>;
 
-    auto size = body_size(request);
-
-    if (!size) {
-        return make_error_result<result_t>(make_body_reader_error_t::bad_message);
-    }
-
-    switch (size->type) {
+    switch (size.type) {
         case body_size_t::type_t::content_length: {
             return result_t(
-                body_reader<BufferedReadStream>(bound_body_reader<BufferedReadStream>(stream, size->content_length, options))
+                body_reader<BufferedReadStream>(bound_body_reader<BufferedReadStream>(stream, size.content_length, options))
             );
         } break;
 
         case body_size_t::type_t::transfer_encoding: {
-            auto headers = request.headers.get_header_values("Transfer-Encoding");
+            auto transfer_encoding = headers.get_header_values("Transfer-Encoding");
 
-            if (!headers || headers->empty()) {
+            if (!transfer_encoding || transfer_encoding->empty()) {
                 return make_error_result<result_t>(make_body_reader_error_t::bad_message);
             }
 
-            auto parsed = parse_extension_list(headers->begin(), headers->end());
+            auto parsed = HTTPLIB_NAMESPACE::parse_extension_list(transfer_encoding->begin(), transfer_encoding->end());
 
             if (!parsed) {
                 return make_error_result<result_t>(make_body_reader_error_t::bad_message);
@@ -148,6 +144,57 @@ make_body_reader(const http_request_t &request, BufferedReadStream &stream, read
 
     assert(false);
     return make_error_result<result_t>(make_body_reader_error_t::bad_message);
+}
+
+} // namespace detail
+
+
+template<class BufferedReadStream>
+result<body_reader<BufferedReadStream>, make_body_reader_error_t>
+make_body_reader(const http_request_t &request, BufferedReadStream &stream, read_options_t options) {
+    using result_t = result<body_reader<BufferedReadStream>, make_body_reader_error_t>;
+
+    auto size = body_size(request);
+
+    if (!size) {
+        return make_error_result<result_t>(make_body_reader_error_t::bad_message);
+    }
+
+    return detail::make_body_reader(*size, request.headers, stream, options);
+}
+
+
+template<class BufferedReadStream>
+result<body_reader<BufferedReadStream>, make_body_reader_error_t>
+make_body_reader(const http_response_t &response, BufferedReadStream &stream, read_options_t options) {
+    using result_t = result<body_reader<BufferedReadStream>, make_body_reader_error_t>;
+
+    auto size = body_size(response);
+
+    if (!size) {
+        return make_error_result<result_t>(make_body_reader_error_t::bad_message);
+    }
+
+    return detail::make_body_reader(*size, response.headers, stream, options);
+}
+
+
+template<class BufferedReadStream>
+result<body_reader<BufferedReadStream>, make_body_reader_error_t>
+make_body_reader(const http_response_t &response,
+                 const http_request_t &original_request,
+                 BufferedReadStream &stream,
+                 read_options_t options)
+{
+    using result_t = result<body_reader<BufferedReadStream>, make_body_reader_error_t>;
+
+    auto size = body_size(response, original_request);
+
+    if (!size) {
+        return make_error_result<result_t>(make_body_reader_error_t::bad_message);
+    }
+
+    return detail::make_body_reader(*size, response.headers, stream, options);
 }
 
 

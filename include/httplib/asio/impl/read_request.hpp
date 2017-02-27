@@ -222,13 +222,13 @@ http_request_t read_request(BufferedReadStream &stream,
 
 template<class BufferedReadStream>
 http_request_t read_request(BufferedReadStream &stream, boost::system::error_code &ec) {
-    return read_request(stream, {}, ec);
+    return read_request(stream, read_options_t(), ec);
 }
 
 template<class BufferedReadStream>
 http_request_t read_request(BufferedReadStream &stream, read_options_t options) {
     boost::system::error_code ec;
-    http_request_t result = read_request(stream, std::move(options));
+    http_request_t result = read_request(stream, std::move(options), ec);
 
     if (ec) {
         throw boost::system::system_error(ec);
@@ -239,7 +239,7 @@ http_request_t read_request(BufferedReadStream &stream, read_options_t options) 
 
 template<class BufferedReadStream>
 http_request_t read_request(BufferedReadStream &stream) {
-    return read_request(stream, {});
+    return read_request(stream, read_options_t());
 }
 
 HTTPLIB_CLOSE_NAMESPACE

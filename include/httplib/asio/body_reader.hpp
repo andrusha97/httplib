@@ -6,6 +6,7 @@
 #include <httplib/http/status_code.hpp>
 #include <httplib/asio/bound_body_reader.hpp>
 #include <httplib/asio/chunked_body_reader.hpp>
+#include <httplib/asio/eof_body_reader.hpp>
 #include <httplib/result.hpp>
 
 #include <boost/variant.hpp>
@@ -16,11 +17,16 @@ HTTPLIB_OPEN_NAMESPACE
 
 template<class BufferedReadStream>
 class body_reader {
+    using eof_reader_t = eof_body_reader<BufferedReadStream>;
     using bound_reader_t = bound_body_reader<BufferedReadStream>;
     using chunked_reader_t = chunked_body_reader<BufferedReadStream>;
 
 public:
     body_reader() = default;
+
+    body_reader(eof_reader_t reader) :
+        m_reader(std::move(reader))
+    { }
 
     body_reader(bound_reader_t reader) :
         m_reader(std::move(reader))
@@ -78,7 +84,7 @@ private:
     struct read_throw_visitor;
 
 private:
-    using reader_t = boost::variant<boost::blank, bound_reader_t, chunked_reader_t>;
+    using reader_t = boost::variant<boost::blank, eof_reader_t, bound_reader_t, chunked_reader_t>;
 
     reader_t m_reader;
 };

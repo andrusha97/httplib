@@ -19,6 +19,10 @@ struct body_reader<BufferedReadStream>::get_io_service_visitor_t {
         assert(false);
     }
 
+    boost::asio::io_service &operator()(eof_reader_t &stream) const {
+        return stream.get_io_service();
+    }
+
     boost::asio::io_service &operator()(bound_reader_t &stream) const {
         return stream.get_io_service();
     }
@@ -40,6 +44,13 @@ struct body_reader<BufferedReadStream>::async_read_visitor {
     >::type
     operator()(boost::blank) const {
         assert(false);
+    }
+
+    typename boost::asio::async_result<
+        typename boost::asio::handler_type<Handler, void(boost::system::error_code, std::size_t)>::type
+    >::type
+    operator()(eof_reader_t &stream) const {
+        return stream.async_read_some(std::move(buffers), std::move(handler));
     }
 
     typename boost::asio::async_result<
@@ -68,6 +79,10 @@ struct body_reader<BufferedReadStream>::read_nothrow_visitor {
         assert(false);
     }
 
+    std::size_t operator()(eof_reader_t &stream) const {
+        return stream.read_some(std::move(buffers), ec);
+    }
+
     std::size_t operator()(bound_reader_t &stream) const {
         return stream.read_some(std::move(buffers), ec);
     }
@@ -85,6 +100,10 @@ struct body_reader<BufferedReadStream>::read_throw_visitor {
 
     std::size_t operator()(boost::blank) const {
         assert(false);
+    }
+
+    std::size_t operator()(eof_reader_t &stream) const {
+        return stream.read_some(std::move(buffers));
     }
 
     std::size_t operator()(bound_reader_t &stream) const {
@@ -136,9 +155,7 @@ make_body_reader(body_size_t size, const http_headers_t &headers, BufferedReadSt
         } break;
 
         case body_size_t::type_t::until_eof: {
-            return result_t(body_reader<BufferedReadStream>(
-                bound_body_reader<BufferedReadStream>(stream, std::numeric_limits<content_length_int_t>::max(), options)
-            ));
+            return result_t(body_reader<BufferedReadStream>(eof_body_reader<BufferedReadStream>(stream, options)));
         } break;
     }
 
